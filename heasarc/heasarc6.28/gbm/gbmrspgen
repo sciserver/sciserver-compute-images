@@ -1,0 +1,945 @@
+#!/usr/bin/perl
+
+=head1 GBM_RSP_Gen:
+                 A routine that processes GLAST Burst Monitor (GBM)
+                 science data and creates level 1 ICD-compliant FITS
+                 Detector Response Function files (GS-104 from GLAST-GS-ICD-0006). 
+
+=head2
+                 
+                 A portion of the GBM ground software:
+                 Written, Aug. 13, 2008, by RDP @ UAH.
+
+ NOTES:
+       1) Primary mode is autonomous, gathering the requisite parameters for  
+          DRM production from the file that are present in the current working 
+          directory, which can be passed as the single formal parameter. Note: 
+          the path argument must be supplied *after* all commandline options.
+       2) USAGE: GBM_RSP_Gen /path/to/working/directory
+          OUTPUTS: 1 Level 1 FITS .rsp file, for each ctime/cspec file present.
+          NOTES: Uses the executable 'gbmrsp.exe', so that must be in the user's $PATH 
+          environment variable, else, the executable can be placed in the working directory 
+          that passed into the program as the argument. Due to the software dependencies in 
+          GBM_RSP_Gen, it is best if the code is run from the /data/fastcopy/software 
+          directory on sledgehammer or /GIOC/software directory on mgioc. 
+          To run independently, please copy:
+          Logging.pm, GBM_Geometry.pm, DOY.pm, GIOC_globals.pm,  
+          along with GBM_RSP_Gen.pl to the directory you are going to run out of. 
+          Note that this method should only be used when you have access to 
+          *all* needed PHA input files; the software that determines the energy edges on 
+          the fly has much more integration with the GIOC pipeline than previously was the
+          case and can not at this time be separated from it.
+       3) Output files are datestamped according to the trigger ID that is 
+          found in each trigger data packet or by the time submitted in the -S 
+          commandline option.
+       4) Commandline argument -M signals which type of matrix should be generated; 
+          the possible values are: 
+          0: Direct matrix only (includes spacecraft scattering),
+          1: Earth atmospheric xsattering matrix only,
+          2: Summed matrix: direct + earth scattering.
+       5) GBM_RSP_Gen -S241112294.624758 /path/to/working/directory (or)
+          GBM_RSP_Gen -S241112294.624758 -E241112335.585184 /path/to/working/directory
+          The response matrix can be made in one of two output types: single or multiple. 
+          The single matrix is the OGIP standard RSP for the time given on the commandline 
+          (also: single RSP matrices can get the trigger time from a trigdat file).
+          Multiple matrices are in a new format, RSP type II (RSPII), where several 
+          matrices for a given observation share the same file, indexed by EXTVER and 
+          oredered by time. The time sequence of matrices can trace out the changing 
+          orientation of the source with respect o the observatory, while it is in a 
+          slew. The cadence of new matrices is determined by a fixed angle of slew, 
+          defaulting to a new matrix being produced for every 2 degrees on the sky, 
+          which can be overridden by the -A commandline arguement (in degrees):
+          GBM_RSP_Gen -S241112294.624758 -E241112335.585184 -A3 /path/to/working/directory
+       6) GBM_RSP_Gen -R75.278 -D45.2762 /path/to/working/directory
+          For non-burst observations, the source position Right Ascension and Declination 
+          can be specified by two commandline parameters (in degrees). Typical operations 
+          allow the source position to be automatically read from a tcat file (GS-105).
+       7) GBM_RSP_Gen -d0 -d1 ...  /path/to/working/directory
+          Individual detectors to process can be input from the command line, and will 
+          override the default selection of detectors, which is taken to be those ctime 
+          or cspec files in the current working directory. This allows processing to be 
+          restricted to the burst triggered detectors or to only those detectors viewing 
+          a given source, even though all detector's files are in the directory.
+       8) GBM_RSP_Gen -N /path/to/working/directory
+          The default auto-run mode will be to produce multiple matrices from the data 
+          teken from the trigdat file. The -N parameter will force the code into single-
+          matrix mode. Other parameters can override this, especially if there are the 
+          -S and -E pair present.
+       9) GBM_RSP_Gen -OGRB /path/to/working/directory
+          This parameter is optional, since the program can find the class from a TCAT file. 
+          Indicates which of the standard source object classes to use for the CLASS keyword  
+          in the primary FITS header of the output response file(s):
+          our @classes = ('ERROR','UNRELOC','LOCLPAR','BELOWHZ','GRB','SGR','TRANSNT','DISTPAR',
+                          'SFL','CYGX1','SGR1806','GROJ422');
+          Use this parameter when it is desirable to override the value in the TCAT file, or 
+          when there is no TCAT/TRGIDAT file to read it from.
+          Since the argument is a string, this could pretty much be any possible value; however, 
+          a string consisting of no more than 8 uppercase characters is preferred. The generic 
+          'TRANSNT' is the default, if there is no supplied TCAT file. 
+       10) GBM_RSP_Gen -Cctime /path/to/working/directory -or- 
+           GBM_RSP_Gen -Ccspec /path/to/working/directory
+          Indicates which of the two data types from which to draw the energy thresholds 
+          to be used in the construction of the responses. The photon (input) edges are 
+          standardized within the DRM code, but the output edges correspond to the current 
+          gain and needs to be provided anew each time. Notice that this is an optional 
+          parameter, since GBM_RSP_Gen will pick up any ctime or cspec files in the 
+          supplied working directory. However, if *both* sets of files are in the working 
+          directory, use the -C option to tell the program which set of responses to create.
+       11) Commandline argument -T signals whether the 'level1.inf' file should be made; 
+          Setting -T indicates that you should *not* make the file!  
+       12) GBM_RSP_Gen -P-20.0 -Q40.0 /path/to/working/directory
+          Determines offset(s) in seconds relative to the trigger time to determine the 
+          quaternion to be used for the spacecraft attitude calculation. -Q is useful alone in 
+          conjunction with single-matrix mode (-N), since the default is to use the quaternion 
+          right at the trigger time. In conjunction with -P, in multiple-matrix mode (no -N),
+          DRMs are calculated from T+(-P value) to T+(-Q value), so using the example above, the 
+          time span would be -20 to +40 seconds.
+       13) Commandline argument -W signals whether the last-produced namelist file should be 
+          retained: Setting -W indicates that you should *not* delete the file!  
+       14) Commandline argument -U0 signals that the user wants to toggle the Cos latitude 
+          correction off. The default (-U1) is for the correction to be turned on.  
+       15) GBM_RSP_Gen -Fatscat_file_name /path/to/working/directory 
+          Allows the user to use an atmospheric scattering matrix file other than the 
+          default (currently, 'test_atscatfile_preeinterp_db002.fits').  
+       16) GBM_RSP_Gen -V1 /path/to/working/directory
+          The output file version number can be set with the -V commandline parameter. 
+          No checking is made to see whether this is really the next number in the 
+          sequence, nor even if it is a number! 
+       
+ DEPENDENCIES (GBM Software):
+    Logging, GBM_Geometry, (DOY, GIOC_globals - implicitly)
+
+ DEPENDENCIES (External Software - must be installed on the system):
+    Astro::FITS::CFITSIO
+
+ DEPENDENCIES (Standard perl distribution):
+    File::Basename, Time::Local
+
+ VERSION HISTORY:
+           V1.0: 08/18/08 RDP: Baseline release.
+           V1.1: 08/20/08 RDP: Fixed the problem of logfiles not being written: I was 
+                 assuming the user could write to the level1stage directory; stupid! Traced 
+                 down the actual dependencies on the GBM software. Removed the dependency on 
+                 GIOC_globals, to make it much more portable. Fix the detector no problem: 
+                 code was failing to create rsp files for NaI#0, with a message that it 
+                 couldn't find the energy edges for detector 32! It turns out that a loop
+                 variable wasn't being initialized the first time through the loop...
+           V1.2: 09/03/08 RDP: Added the ability to call get_chan2energy directly. This will  
+                 allow the user to bypass the energies written to the PHA files, since those 
+                 in the matrices will supercede them in any spectral fitting. One good con-
+                 sequence of this is that many files will not be need to be remade, only the 
+                 DRMs.
+                 I switched the commandline argument -T to mean that the interface file should 
+                 not be written out. -M now indicates which type of matrix should be used.
+                 Added -Q option: seconds offset from the trigger time to grab the quaternion.
+           V1.3: 09/29/08 RDP: Added a call to get_LUT_by_time() to create_PHA_FITS, to 
+                 support the reprocessing of older data where the LUTS files to use may not  
+                 those in the luts.txt file. 
+           V1.4: 10/10/08 RDP: Added the -W parameter, to allow the user to retain the  
+                 last namelist file used for response generation.  
+           V1.5: 12/17/08 RDP: Added the -Un and -Fatscatfile_name parameters, to allow the 
+                 user to toggle the use of the Cos latitude correction (mostly for testing)  
+                 as well as for choosing the atmospheric scattering correction file. These 
+                 were done (as well as changes to write_nml) to support release 1.7 of the 
+                 response generation code. CCR# 120 and 99.
+           V1.6: 01/12/09 RDP Simplified the calling of the new channel-to-energy scheme 
+                 by eliminating much of the previous changes and rolling the call into the 
+                 ChannelToEnergy module.
+           V1.7: 08/13/09 RDP Changed some of the reported times in get_pos_info(), so that  
+                 the calculated slew times all match with a valid quaternion time from the 
+                 TIGDAT data file. Only the end time of the data are given, and that is the 
+                 time the quaternion is calculated for. This should mean that the matrix that 
+                 results should be valid for the *beginning* of the interval; that is: for 
+                 TSTART, not TSTOP.
+           V1.8: 09/03/09 RDP: Fixed the -Un and -Fatscatfile_name parameters. Added the new 
+                 GBMRSP_NML environment variable.
+           V1.9: 10/15/09 RDP: We should pass the program name and version number to write_nml 
+                 GM_Geometry.pm, which was also changed. This is to satisfy CCR# 193, DRM Audit 
+                 Trail Info.
+           V1.10: 12/15/09 RDP: Made changes to allow for restricted ranges in time selection for
+                 producing multiple matrices to use for trigger data. The user should supply the -S and 
+                 -E parameters to indicate the start and end time of the desired run of matrices; 
+                 alternatively, one can use -Q in muliple-matrix mode (no -N parameter) to indicate 
+                 the ending time, in which case, the start time is taken to be the trigger time. 
+                 Additionally, one can specify a pre-burst offset time -P in seconds.
+                 Also, fixed a bug where the poshist file could not be read when substituting 
+                 for a missing or damaged trigdat file.
+           V1.11: 5/25/2010 RDP: Some bug fixes for the POSHIST/daily dataset mode: 
+                 1) Didn't define $trigger_time for single matrix mode (with POSHIST); now it is based 
+                 on $starttime; I'm not sure how this ever worked before!
+                 2) The POSHIST file name was constructed by removing 'bn' from the CSPEC/CTIME data 
+                 file date stamp. Of course, there is no 'bn' for the daily FITS files! Fixed.
+                 3) Also, the -P and -Q parameters were not used when reading from a POSHIST file. Fixed.
+                 4) Worse of all, the POSHIST file was being read from the $starttime index, and 
+                 $endtime index values were being read. This was fine, if overkill, as long as $endtime 
+                 was in the first half of the day; otherwise, we try to read off the end of the file. 
+                 We now difference the indices to determine how many records to read.
+                 
+=cut
+use strict;
+
+# Make sure we can write directories out correctly:
+umask 002;
+
+our $version = "1.11";
+
+use lib '/opt/fermi/gbm/software';  ### HERA
+
+# Set up environmental variables:
+use GIOC_globals;
+my $stagedir = $ENV{'l1_stage_dir'};
+my $basedir = $ENV{'archive_base'};
+
+use Logging;
+use GBM_Geometry;
+
+use Astro::FITS::CFITSIO qw( :shortnames :constants );
+
+use File::Basename;
+use Time::Local;
+#use POSIX qw( ceil floor modf );
+
+our $pi = atan2(1, 1) * 4;
+our $dtorad = $pi / 180;
+our $radtod = 180 / $pi;
+
+our $angle_slew = 2.0;
+our ($source_RA, $source_Dec);
+our ($starttime, $endtime, $trigger_time);
+our @detectors;
+our $filename;
+our $file_type;
+our $file_ver = 0;
+our $list_out = 0;
+our $mat_type = 0;
+our $poshist = 0;
+our $testmode = 0;
+our $use_coslat_corr = 1;
+our $atscat_filename;
+our $bn_string;
+our $obj_class = 'TRANSNT';
+our $single = 0;
+our ($preb_offset, $quat_offset);
+our $logfile;
+our $checksum = '0xFEED';
+our $cal_scheme = 'Bhat 1.7';
+our $gain_cor = 1.0;
+our ($LUTfile, $LUTpath);
+our (@pretimes, @postimes, @quaternions, @earthpos);
+my @mat_types = ("Direct", "Scatter", "Summed");
+
+our %det_names;
+for (my $ii = 0; $ii <14; $ii++) {
+	my $prefix = ($ii < 12) ? 'n' : 'b';
+	my $det_name = sprintf "${prefix}%lx", $ii % 12;
+	#open my $det_fh, ">${det_name}_${file_time}.dat";
+	#$det_names{$det_name} = $det_fh;
+	$det_names{$det_name} = $ii;
+}
+our %det_nos = reverse %det_names;
+
+sub get_slew_times { 
+
+	my $scatt_data = shift;
+#print "Number of rows: ", 	@$scatt_data +0, "\n";
+	my $slew_limit = cos($angle_slew * $dtorad / 2.0);
+	my $temp_row = $$scatt_data[0];
+	my ($btime, $etime, $temp_quat, $temp_eic) = @$temp_row;
+	# Start with the first record in the data:
+	print LOG "Start slew change time: $etime \n";
+	push @pretimes, $etime;
+	# push @pretimes, $btime;
+	push @quaternions, $temp_quat;
+	push @earthpos, $temp_eic;
+	# Seed the divisor quaternion:
+	my @prev_quat = @{$$temp_row[2]};
+	foreach my $data_row (@$scatt_data) {
+		my ($btime, $etime, $temp_quat, $temp_eic) = @$data_row;
+ 		my ($qsj1, $qsj2, $qsj3, $qsj4) = @$temp_quat;
+		my @t_v1 = ($prev_quat[0], $prev_quat[1], $prev_quat[2]);
+		my @t_v2 = ($qsj1, $qsj2, $qsj3);
+		# Quaternion division (scalar component) to obtain the change angle:
+		my $temp_ang = $qsj4 * $prev_quat[3] + dot_product(\@t_v1, \@t_v2);
+		next if abs($temp_ang) > $slew_limit;
+		print LOG "Found slew change at: $etime, $temp_ang \n";
+		# Now cache the data found:
+		push @pretimes, $etime;
+		push @postimes, $etime;
+		push @quaternions, $temp_quat;
+		push @earthpos, $temp_eic;
+		# And reinitialize the previous quaternion:
+		@prev_quat = @$temp_quat;
+	}
+	
+	$temp_row = $$scatt_data[-1];
+	($btime, $etime, $temp_quat, $temp_eic) = @$temp_row;
+	# Finish with the last record in the data:
+	print LOG "Ending slew change time: $etime \n";
+	push @postimes, $etime;
+# 	push @quaternions, $temp_quat;
+# 	push @earthpos, $temp_eic;
+}
+
+sub get_posinfo { 
+	
+	my $pos_file = shift;
+	my ($fptr, $comment, $status);
+	my $dnul=0.0;
+	my $anynull = 0;
+	my @scatt_data;
+#	print LOG  scalar localtime, "\n";
+#	print LOG "In get_posinfo():\n";
+# 	my $start = defined($starttime) ? $starttime : $trigger_time;  ### HERA
+	if ($single) {
+		print LOG "In get_posinfo(): Processing single time: $starttime\n";
+		if ($poshist) {
+			ffopen($fptr,$pos_file,READONLY,$status) and print(LOG "ERROR: ffopen open file $pos_file status = $status\n");
+			# Move to the appropriate extension:
+			ffmnhd($fptr,ANY_HDU,"GLAST POS HIST",0,$status);
+			my (@quats, @e_pos);
+			my $sc_utc;
+			# Get the number of rows:
+			my $nrows;
+			ffgnrw($fptr, $nrows, $status);
+			ffgcv($fptr, TDOUBLE, 1, 1, 1, $nrows, $dnul, $sc_utc, $anynull, $status);
+			# Run throguh the data until you find the correct time:
+			my $tt = 0;
+			foreach my $time (@$sc_utc) {
+				$tt++;
+				last if $starttime <= $time;
+			}
+			
+			if (! ($tt < $nrows)) {
+				print LOG "******* Start time not found in poshist file! *********\n";
+				print LOG "*******   You probably need a different day!  *********\n";
+				print LOG "Exiting...\n\n";
+				close LOG;
+				exit 1;
+			}
+			
+			my ($t_quats, $t_e_pos);
+			ffgcv($fptr, TDOUBLE, 2, $tt, 1, 1, $dnul, $t_quats, $anynull, $status);
+			push @quats, $$t_quats[0];
+			ffgcv($fptr, TDOUBLE, 3, $tt, 1, 1, $dnul, $t_quats, $anynull, $status);
+			push @quats, $$t_quats[0];
+			ffgcv($fptr, TDOUBLE, 4, $tt, 1, 1, $dnul, $t_quats, $anynull, $status);
+			push @quats, $$t_quats[0];
+			ffgcv($fptr, TDOUBLE, 5, $tt, 1, 1, $dnul, $t_quats, $anynull, $status);
+			push @quats, $$t_quats[0];
+			ffgcv($fptr, TFLOAT, 9, $tt, 1, 1, $dnul, $t_e_pos, $anynull, $status);
+			push @e_pos, $$t_e_pos[0];
+			ffgcv($fptr, TFLOAT, 10, $tt, 1, 1, $dnul, $t_e_pos, $anynull, $status);
+			push @e_pos, $$t_e_pos[0];
+			ffgcv($fptr, TFLOAT, 11, $tt, 1, 1, $dnul, $t_e_pos, $anynull, $status);
+			push @e_pos, $$t_e_pos[0];
+			ffclos($fptr,$status) and print(LOG "ERROR in ftclos (1) = $status\n");
+			# There's no recourse: we must put startime = endtime
+			push @pretimes, $starttime;
+			push @postimes, $starttime;
+			push @quaternions, \@quats;
+			push @earthpos, \@e_pos;
+#			push @scatt_data, [$, $starttime, \@quats, ];
+# 			print join(' : ', @quats), "\n";
+# 			print join(' : ', @e_pos), "\n";
+		} else {   # We are using a trigdat file; get the quat & EIC at the trigger time:
+			# There should be only one TRIGDAT file in the directory!
+			my ($tstart, $tstop);
+			my ($quats, $e_pos);
+			ffopen($fptr,$pos_file,READONLY,$status) and print(LOG "ERROR: ffopen open file $pos_file status = $status\n");
+			ffgkey($fptr,'TSTART',$tstart,$comment,$status);
+			ffgkey($fptr,'TSTOP',$tstop,$comment,$status);
+			# Move to the appropriate extension:
+			if (defined $quat_offset) {
+				my $target_time = $trigger_time + $quat_offset;
+				if ($target_time > $tstop or $target_time < $tstart) {
+					print LOG "******* Offset time not found in trigdat file! *********\n";
+					print LOG "*******    Data only exist for T-150 +500 s!   *********\n";
+					print LOG "Exiting...\n\n";
+					close LOG;
+					exit 1;
+				}
+				ffmnhd($fptr,ANY_HDU,"EVNTRATE",0,$status);
+				my ($times, $etimes);
+				# Get the number of rows:
+				my $nrows;
+				ffgnrw($fptr, $nrows, $status);
+				ffgcv($fptr, TDOUBLE, 1, 1, 1, $nrows, $dnul, $times, $anynull, $status);
+				ffgcv($fptr, TDOUBLE, 2, 1, 1, $nrows, $dnul, $etimes, $anynull, $status);
+				
+				my $qq = 1;
+				for my $curr_time (@$etimes) {
+					last if $curr_time > $target_time;
+# print "$qq: $target_time < $curr_time\n";
+					++$qq;
+				}
+				ffgcv($fptr, TDOUBLE, 3, $qq, 1, 4, $dnul, $quats, $anynull, $status);
+				ffgcv($fptr, TFLOAT, 4, $qq, 1, 3, $dnul, $e_pos, $anynull, $status);
+			} else {
+				ffmnhd($fptr,ANY_HDU,"TRIGRATE",0,$status);
+				ffgcv($fptr, TDOUBLE, 3, 1, 1, 4, $dnul, $quats, $anynull, $status);
+				ffgcv($fptr, TFLOAT, 4, 1, 1, 3, $dnul, $e_pos, $anynull, $status);
+				if ($status != 0) {
+					print LOG "****** No TRIGRATE data found in the trigdat file! ********\n";
+					print LOG "****** There was probably an error in level 0 file! *******\n";
+					print LOG "Exiting...\n\n";
+					close LOG;
+					exit 1;
+				}
+			}
+			ffclos($fptr,$status) and print(LOG "ERROR in ftclos (1) = $status\n");
+			
+			push @pretimes, $tstart;
+			push @postimes, $tstop;
+			push @quaternions, $quats;
+			push @earthpos, $e_pos;
+#			push @scatt_data, [$tstart, $tstop, $quats, $e_pos];
+# 			print join(' : ', @$quats), "\n";
+# 			print join(' : ', @$e_pos), "\n";
+		}
+	} else {             # Multiple Matrices:
+		print LOG "In get_posinfo(): Processing multiple matrices\n";
+		if ($poshist) {   # We are using a poshist file; cache the data:
+			
+			# The default case is that the user did not specify the start and stop times:
+			if (defined $quat_offset) {
+				$endtime = $trigger_time + $quat_offset;
+			}
+			if (defined $preb_offset) {
+				$starttime = $trigger_time + $preb_offset;
+			}
+
+			ffopen($fptr,$pos_file,READONLY,$status) and print(LOG "ERROR: ffopen open file $pos_file status = $status\n");
+			# Move to the appropriate extension:
+			ffmnhd($fptr,ANY_HDU,"GLAST POS HIST",0,$status);
+			my (@quats, @e_pos, @times, @etimes);
+			my $sc_utc;
+			# Get the number of rows:
+			my $nrows;
+			ffgnrw($fptr, $nrows, $status);
+#print "nrows: $nrows\n";
+			ffgcv($fptr, TDOUBLE, 1, 1, 1, $nrows, $dnul, $sc_utc, $anynull, $status);
+			# Run throguh the data until you find the correct start & end times:
+			my $tt = 0;
+			foreach my $time (@$sc_utc) {
+				$tt++;
+				last if $starttime <= $time;
+			}
+			
+			if (! ($tt < $nrows)) {
+				print LOG "******* Start time not found in poshist file! *********\n";
+				print LOG "*******   You probably need a different day!  *********\n";
+				print LOG "Exiting...\n\n";
+				close LOG;
+				exit 1;
+			}
+
+			my $yy = 0;
+			foreach my $time (@$sc_utc) {
+				$yy++;
+				last if $endtime <= $time;
+			}
+			
+			if (! ($yy < $nrows)) {
+				print LOG "******* End time not found in poshist file! *********\n";
+				print LOG "******* You probably need a different day!  *********\n";
+				print LOG "Exiting...\n\n";
+				close LOG;
+				exit 1;
+			}
+			my ($qsj1, $qsj2, $qsj3, $qsj4, $eicx, $eicy, $eicz);
+			my $del = $yy - $tt;
+#print "Start and end indices: $tt, $yy\n";			
+ 			ffgcv($fptr, TDOUBLE, 2, $tt, 1, $del, $dnul, $qsj1, $anynull, $status);
+			ffgcv($fptr, TDOUBLE, 3, $tt, 1, $del, $dnul, $qsj2, $anynull, $status);
+			ffgcv($fptr, TDOUBLE, 4, $tt, 1, $del, $dnul, $qsj3, $anynull, $status);
+			ffgcv($fptr, TDOUBLE, 5, $tt, 1, $del, $dnul, $qsj4, $anynull, $status);
+			ffgcv($fptr, TFLOAT, 9, $tt, 1, $del, $dnul, $eicx, $anynull, $status);
+			ffgcv($fptr, TFLOAT, 10, $tt, 1, $del, $dnul, $eicy, $anynull, $status);
+			ffgcv($fptr, TFLOAT, 11, $tt, 1, $del, $dnul, $eicz, $anynull, $status);
+			ffclos($fptr,$status) and print(LOG "ERROR in ftclos (1) = $status\n");
+			for (my $jj = $tt; $jj < $yy; $jj++) {
+				my @temp_att = (shift @$qsj1, shift @$qsj2, shift @$qsj3, shift @$qsj4);
+				my @temp_eic = (shift @$eicx, shift @$eicy, shift @$eicz);
+				my $time = $$sc_utc[$jj];
+				push @scatt_data, [$time, $time, \@temp_att, \@temp_eic];
+			}
+			# Set up the data array:
+			get_slew_times(\@scatt_data);
+			
+		} else {   # We are using a trigdat file; cache the data:
+			# There should be only one TRIGDAT file in the directory!
+			ffopen($fptr,$pos_file,READONLY,$status) and print(LOG "ERROR: ffopen open file $pos_file status = $status\n");
+			# Move to the appropriate extension:
+			ffmnhd($fptr,ANY_HDU,"EVNTRATE",0,$status);
+			my ($quats, $e_pos, $times, $etimes);
+			# Get the number of rows:
+			my $nrows;
+			ffgnrw($fptr, $nrows, $status);
+			ffgcv($fptr, TDOUBLE, 1, 1, 1, $nrows, $dnul, $times, $anynull, $status);
+			ffgcv($fptr, TDOUBLE, 2, 1, 1, $nrows, $dnul, $etimes, $anynull, $status);
+			ffgcv($fptr, TDOUBLE, 3, 1, 1, 4 * $nrows, $dnul, $quats, $anynull, $status);
+			ffgcv($fptr, TFLOAT, 4, 1, 1, 3 * $nrows, $dnul, $e_pos, $anynull, $status);
+			ffclos($fptr,$status) and print(LOG "ERROR in ftclos (1) = $status\n");
+			
+			# The default case is that the user did not specify the start and stop times:
+			if (defined $quat_offset) {
+				$endtime = $trigger_time + $quat_offset;
+			}
+			if (defined $preb_offset) {
+				$starttime = $trigger_time + $preb_offset;
+			}
+			$starttime = $$times[0] if ! defined $starttime;
+			$endtime = $$etimes[-1] if ! defined $endtime;
+			
+			# One final check:
+			if ($endtime < $starttime) {
+				my $temp_t = $starttime;
+				$starttime = $endtime;
+				$endtime = $temp_t;
+			}
+
+			for (my $jj = 0; $jj < $nrows; $jj++) {
+				my @temp_att = (shift @$quats, shift @$quats, shift @$quats, shift @$quats);
+				my @temp_eic = (shift @$e_pos, shift @$e_pos, shift @$e_pos);
+				next if $starttime > $$times[$jj];
+				last if $endtime < $$etimes[$jj];
+				push @scatt_data, [$$times[$jj], $$etimes[$jj], \@temp_att, \@temp_eic];
+			}
+			# Set up the data array:
+			get_slew_times(\@scatt_data);
+		}
+	}
+
+}
+
+sub get_RA_Dec { 
+
+	my $tcat_file = shift;
+	my ($ra, $dec, $trigt, $class);
+	my ($fptr, $comment, $status);
+	
+	# There should be only one TCAT file in the directory!
+	ffopen($fptr,$tcat_file,READONLY,$status) and print(LOG "ERROR: ffopen open file $tcat_file status = $status\n");
+	ffgkey($fptr,'TRIGTIME',$trigt,$comment,$status);
+	ffgkey($fptr,'RA_OBJ',$ra,$comment,$status);
+	ffgkey($fptr,'DEC_OBJ',$dec,$comment,$status);
+	ffgkey($fptr,'CLASS',$class,$comment,$status);
+	ffclos($fptr,$status);
+	print(LOG "ERROR in ftclos (1) = $status\n") if $status != 0 and $status != 202;
+
+	# We must strip out the quotes returned by ffgkey when getting string values:
+	$class = substr($class,1);
+	$class = substr($class,0,-1);
+
+	return ($ra, $dec, $trigt, $class);
+
+}
+
+sub get_Energies { 
+
+	my $filename = shift;
+	my ($e_min, $e_max, $class);
+	my ($fptr, $comment, $status);
+	my $dnul=0.0;
+	my $anynull = 0;
+	
+	ffopen($fptr,$filename,READONLY,$status) and print(LOG "ERROR: ffopen open file $filename status = $status\n");
+	ffmnhd($fptr,ANY_HDU,"EBOUNDS",0,$status);
+	# Get the number of rows:
+	my $nrows;
+	ffgnrw($fptr, $nrows, $status);
+	ffgcv($fptr, TFLOAT, 2, 1, 1, $nrows, $dnul, $e_min, $anynull, $status);	
+	ffgcv($fptr, TFLOAT, 3, 1, 1, $nrows, $dnul, $e_max, $anynull, $status);	
+	push @$e_min, $$e_max[-1];
+	#print join(/ : /, @$e_min), "\n";	
+	ffgkey($fptr,'GBMCKSUM',$checksum,$comment,$status);
+	if (defined $checksum) {
+		$checksum = substr($checksum,1,-1);
+	} else {$checksum = "none" ;}
+	ffgkey($fptr,'CH2E_VER',$cal_scheme,$comment,$status);
+	if (defined $cal_scheme) {
+		$cal_scheme = substr($cal_scheme,1,-1);
+	} else {$cal_scheme = "Bhat 1.7" ;}
+	#print "Cal_scheme: ", $cal_scheme, "\n";
+	ffgkey($fptr,'GAIN_COR',$gain_cor,$comment,$status);
+	$gain_cor = 1.0 if ! defined $gain_cor;
+	return $e_min;
+
+}
+
+#sub by_number {$a <=> $b}
+
+=head1
+**************************************************************************
+ MAIN; processes a non-standard directory that is presented in @ARGV
+**************************************************************************
+
+=cut
+
+my @loglines;
+
+while (@ARGV and $ARGV[0] =~ /^-/) {
+	$_ = shift;
+	#last if /^--$/;
+	if (/^-d(.*)/) {
+		my $found_det = $1;
+		push @loglines, "-d: Found detector for processing: $found_det\n";
+		push @detectors, $found_det;
+	}
+	if (/^-A(.*)/) {
+		$angle_slew = $1;
+		push @loglines, "-A: Found slew angle limit for processing: $angle_slew degrees\n";
+	}
+	if (/^-C(.*)/) {
+		my $temp_type = lc $1;
+		if ($temp_type eq 'ctime' or $temp_type eq 'cspec') {
+			$file_type = $temp_type;
+			push @loglines, "-C: Found a file type for processing: $file_type\n";
+		}
+	}
+	if (/^-S(.*)/) {
+		$starttime = $1;
+		push @loglines, "-S: Found start time for processing: $starttime [MET]\n";
+	}
+	if (/^-E(.*)/) {
+		$endtime = $1;
+		$single = 0;
+		push @loglines, "-E: Found end time for processing: $endtime [MET]\n";
+	}
+	if (/^-F(.*)/) {
+		$atscat_filename = $1;
+		push @loglines, "-F: Use atscat file: $atscat_filename\n";
+	}
+	if (/^-R(.*)/) {
+		$source_RA = $1;
+		push @loglines, "-R: Found source RA for processing: $source_RA degrees\n";
+	}
+	if (/^-D(.*)/) {
+		$source_Dec = $1;
+		push @loglines, "-D: Found source Dec for processing: $source_Dec degrees\n";
+	}
+	if (/^-W/) {
+		$list_out = 1;
+		push @loglines, "-W: Found write namelist mode (last nml file not removed)\n";
+	}
+	if (/^-M(.*)/) {
+		$mat_type = $1;
+	}
+	if (/^-N/) {
+		$single = 1;
+		push @loglines, "-N: Found single matrix mode (may be overridden).\n";
+	}
+	if (/^-O(.*)/) {
+		$obj_class = $1;
+		push @loglines, "-O: Found Object class: $obj_class.\n";
+	}
+	if (/^-P(.*)/) {
+		$preb_offset = $1;
+		push @loglines, "-P: Found preburst offset: $preb_offset.\n";
+	}
+	if (/^-Q(.*)/) {
+		$quat_offset = $1;
+		push @loglines, "-Q: Found offset for quaternion: $quat_offset.\n";
+	}
+	if (/^-T/) {
+		$testmode = 1;
+		push @loglines, "-T: Found test mode (no 'level1.inf' to be written).\n";
+	}
+	if (/^-U(.*)/) {
+		$use_coslat_corr = $1;
+		push @loglines, "-U: Toggling Cos correction: ",$use_coslat_corr ? "ON": "OFF","\n";
+	}
+	if (/^-V(.*)/) {
+		$file_ver = $1;
+		push @loglines, "-V: Found file version number: $file_ver\n";
+	}
+}
+
+my $temp_stage = shift;
+
+# Start logging (use object to print to console as well):
+my $prog = basename($0) || "SA_GBM_RSP_Gen";  ### HERA
+tie *LOG, "Logging", $prog;  ### HERA
+
+print LOG  scalar localtime, "\n";
+print LOG "Started SA_GBM_RSP_Gen, version $version\n";
+# One of the parameters *should* be the command line argument:
+print LOG "Processing commandline options:\n";
+print LOG "-M: Found $mat_types[$mat_type] Matrix Type\n";
+print LOG $_ for @loglines;
+
+### HERA
+if (defined $temp_stage and -d $temp_stage and -r _ and -w _ and -x _) {
+	if (chdir($temp_stage)) {
+	    $stagedir = $temp_stage;
+	} else {
+	    print LOG "******* You must supply an accessible path to a directory containing the GBM \"TCAT\", \"TRIGDAT\" and GBM \"PHA\" files! *********\n";
+	    print LOG "Exiting...\n\n";
+	    close LOG;
+	    exit 1;
+	}
+} else {
+	print LOG "******* You must supply an accessible path to a directory containing the GBM \"TCAT\", \"TRIGDAT\" and GBM \"PHA\" files! *********\n";
+	print LOG "Exiting...\n\n";
+	close LOG;
+	exit 1;
+}
+### HERA ^^^
+
+if (defined $endtime and ! defined $starttime) {
+	print LOG "******* You must also supply a start time (-S) with -E! *********\n";
+	print LOG "Exiting...\n\n";
+	close LOG;
+	exit 1;
+}
+
+if ((defined $endtime and defined $starttime) and $endtime < $starttime) {
+	print LOG "******* Start time (-S) must be less than End time (-E)! *********\n";
+	print LOG "Exiting...\n\n";
+	close LOG;
+	exit 1;
+}
+
+if (! defined $endtime and defined $starttime) {
+	$single = 1;
+}
+
+if ((defined $source_RA and ! defined $source_Dec) or 
+   (! defined $source_RA and defined $source_Dec)) {
+	print LOG "******** You must supply both -R and -D! *********\n";
+	print LOG "Exiting...\n\n";
+	close LOG;
+	exit 1;
+}
+
+print LOG "Continuing...\n\n";
+
+print LOG  scalar localtime, "\n";
+print LOG "Using staging directory: \n";
+print LOG "$temp_stage\n";
+print LOG "Continuing...\n\n";
+
+print LOG  scalar localtime, "\n";
+print LOG "Looking for required inputs: \n";
+
+my @tcat_files = sort(glob "glg_tcat_all*fit");
+my $tcat_file = $tcat_files[-1];
+my @trigdat_files = sort(glob "glg_trigdat_all_${bn_string}*fit");
+my $trigdat_file = $trigdat_files[-1];
+
+my $temp_class;
+my ($temp_RA, $temp_Dec);
+if (defined $tcat_file) {
+	print LOG "Found tcat file: $tcat_file\n";
+	(undef, undef, undef, $bn_string) = split /_/, basename($tcat_file);
+	($temp_RA, $temp_Dec, $trigger_time, $temp_class) = get_RA_Dec($tcat_file);
+	# Don't use one thing for two purposes!!!
+	#$starttime = $trigger_time if ! defined $starttime;
+	# Override the default only if we haven't passed in a new object class:
+	$source_RA = $temp_RA if ! defined $source_RA;
+	$source_Dec= $temp_Dec if ! defined $source_Dec;
+	$obj_class = $temp_class if $obj_class eq 'TRANSNT';
+} elsif (defined $trigdat_file) {
+	(undef, undef, undef, $bn_string) = split /_/, basename($trigdat_file);
+	($temp_RA, $temp_Dec, $trigger_time, $temp_class) = get_RA_Dec($trigdat_file);
+	# Don't use one thing for two purposes!!!
+	#$starttime = $trigger_time if ! defined $starttime;
+	# Override the default only if we haven't passed in a new object class:
+	$source_RA = $temp_RA if ! defined $source_RA;
+	$source_Dec= $temp_Dec if ! defined $source_Dec;
+	# Override the default only if we haven't passed in a new object class:
+	$obj_class = $temp_class if ! defined $obj_class and $obj_class eq 'TRANSNT';
+}
+
+$trigger_time = $starttime if ! defined $trigger_time;
+
+if (! defined $source_RA and ! defined $source_Dec) {
+	if (! defined $tcat_file) {
+		print LOG "*******       No TCAT file found!       *********\n";
+		print LOG "******* You must supply both -R and -D! *********\n";
+		print LOG "Exiting...\n\n";
+		close LOG;
+		exit 1;
+	}
+} else {
+	if (! defined $trigger_time) {
+		print LOG "*******        No start time found!         *********\n";
+		print LOG "******* You must supply one with -R and -D! *********\n";
+		print LOG "Exiting...\n\n";
+		close LOG;
+		exit 1;
+	}
+}
+print LOG "Using source location RA: $source_RA, Dec: $source_Dec\n";
+
+if (defined $trigdat_file) {
+	print LOG "Found trigdat file: $trigdat_file\n";
+} else {
+	# 12/12/15 RDP: The poshist file is a daily file, so we need to extract the date:
+	my $poshist_date = ($bn_string =~ /bn/) ? substr($bn_string,2,6) : $bn_string;
+	my @trigdat_files = sort(glob "glg_poshist_all_${poshist_date}*fit");
+	$trigdat_file = $trigdat_files[-1];
+	print LOG "Found poshist file: $trigdat_file\n";
+	$poshist = 1;
+# 	$single = 0
+}
+my @detector_files;
+if (defined $file_type) {
+	@detector_files = glob("glg_${file_type}*${bn_string}*pha");
+} else {
+	@detector_files = (glob("glg_ctime*${bn_string}*pha"), 
+					   glob("glg_cspec*${bn_string}*pha"));
+	if (@detector_files) { # We have at least one file; get the type:
+		my $one_file = $detector_files[0];
+		(undef, $file_type) = split /_/, basename($one_file);
+	}
+}
+if (! @detector_files and ! defined $file_type) {
+	print LOG "*******        No ctime or cspec data files found!        ********\n";
+	print LOG "******* You must specify a file type: -Cctime or -Ccspec! ********\n";
+	print LOG "Exiting...\n\n";
+	close LOG;
+	exit 1;
+}
+
+print LOG "Found EBOUNDS source file type: $file_type\n";
+print LOG "All required files/parameters found! Continuing...\n\n";
+
+print LOG  scalar localtime, "\n";
+print LOG "Caching position information: \n";
+get_posinfo($trigdat_file);
+print LOG "Continuing...\n\n";
+
+my %dets;
+if (@detectors) { # We should cull the entire list to include only those requested:
+	if (@detector_files) {
+		my %temp_list;
+		foreach my $e_file (@detector_files) {
+			my (undef, undef, $det_test) = split /_/, $e_file;
+			$temp_list{$det_test} = $e_file;
+		}
+		foreach my $detector (@detectors) {
+			my $prefix = ($detector < 12) ? 'n' : 'b';
+			my $det_key = sprintf "${prefix}%lx", $detector % 12;
+	#		my $det_key = $det_nos{$detector};
+			$dets{$detector} = $temp_list{$det_key} if defined $temp_list{$det_key};
+		}
+	} else { # No detector files; use all selected detectors:
+		foreach my $detector (@detectors) {
+			$dets{$detector} = 1;
+		}
+	}
+} else { # No pre-defined list of detectors: are there any files?
+	if (@detector_files) { # Yes; use them:
+		foreach my $e_file (@detector_files) {
+			my (undef, undef, $det_test) = split /_/, $e_file;
+			my $detector = $det_names{$det_test};
+			$dets{$detector} = $e_file;
+		}
+	} else {
+		# The detectors list was not provided; we must call the channel-to-energy routinne directly:
+		print LOG "ERROR: Stand-alone Response Generator requires data files in the working dir.\n\n";
+		close LOG;
+		exit;
+# 		@detectors = (0 .. 13);
+# 		foreach my $detector (@detectors) {
+# 			$dets{$detector} = 1;
+# 		}
+	}
+}
+
+close LOG;
+
+my $child;
+$SIG{CHLD} = 'IGNORE';
+
+# Now write out the namelist and create the DRMs:
+foreach my $det_no (keys %dets) {
+
+# 	use ArchiveTasks;
+# 	use ChannelToEnergy;
+	
+	if ($child = fork) {
+ 	   my $energies;
+	   my $det_file = $dets{$det_no};
+	   if ($det_file ne "1") {  # We have a real file! Get the energies for it:
+	      print "direct PHA energy lookup method...\n";
+	      $energies = get_Energies($det_file);
+	      $LUTfile = $det_file;
+	      # get_Energies also sets the cal_scheme global (or undefs it if blank):
+	      #undef $cal_scheme;
+	   } else {                 # No file; we must call get_chan2energy() directly!
+		print "ERROR: Stand-alone generator needs data files...\n";
+		return;
+# 		my $num_chan = ($file_type eq 'ctime') ? 8 : 128;
+# 		# Get the time of the last LUT change:
+# 		my $lut_start = readLUTSfile(0);
+# 		# my ($LUTfile, $LUTpath);
+# 		# Check to see that time in the luts.txt file should be valid...
+# 		if ($starttime > $lut_start) {
+# 			print LOG "retrieve_LUT lookup method...\n";
+# 			$checksum = parseLUTSfile($num_chan, $det_no);
+# 			($LUTfile, $LUTpath) = retrieve_LUT($checksum);
+# 		} else {
+# 			print LOG "get_LUT_by_time lookup method...\n";
+# 			($LUTfile, $LUTpath, $checksum) = get_LUT_by_time($num_chan, $det_no, $starttime);
+# 		}
+# 		my $channels = get_chan_edges("$LUTpath/$LUTfile");
+# 		my @energies = get_chan2energy($channels, $det_no);
+# 		chdir("$temp_stage");  # Since retrieve_LUT sets the directory to level1stage!
+# 		$energies = \@energies;
+# 		$cal_scheme = get_cal_scheme();
+	   }
+	
+	   my $calling_code = "$0-$version";
+	
+	   # One more check:
+	   $trigger_time = $starttime if ! defined $trigger_time;
+
+	   my $nml_file = write_nml(\@quaternions, \@earthpos, $source_RA, $source_Dec, $det_no, $trigger_time, 
+			      $obj_class, $energies, \@pretimes, \@postimes, $file_ver, $calling_code, $mat_type,
+			      $cal_scheme, $gain_cor, $LUTfile, $checksum, $atscat_filename, $use_coslat_corr);
+
+	   print LOG "NML file: @{[ $nml_file || 'undef' ]}\n";  ### HERA
+	   if (defined $nml_file) {
+		   $ENV{GBMRSP_NML} = "$temp_stage/$nml_file"; 
+	   } else {
+		   $ENV{GBMRSP_NML} = "gbmrsp.nml"; 
+	   }
+
+	   my @drm_result = `$ENV{'GIOC_base'}/software/gbmrsp.exe`;  ### HERA
+	   print "\n", @drm_result, "\n";
+	
+	   my $DRM_file;
+	   for my $line (@drm_result) {
+		#print $line, "\n";
+		#chomp;
+		$_ = $line;
+		($DRM_file = $1) if /(glg.+rsp)/;
+		### HERA
+		if (!defined($DRM_file)) {
+		    print LOG "Error: DRM file not found!\n";
+		    next;
+		}
+		### HERA ^^^
+		if (! $testmode) {
+			# Mark these files for the level 1 archiving task:
+			open L1INF, ">>level1.inf";
+			print L1INF $DRM_file, "\n";
+			close L1INF;
+			last;
+		}
+	   }
+	
+	   unlink glob("$nml_file") if !$list_out;
+
+	#### HERA
+	} else {
+           exit;
+        }
+ 
+        waitpid($child,0);
+	#### ^^^ HERA
+}
+
+exit;

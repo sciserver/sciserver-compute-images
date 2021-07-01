@@ -1,0 +1,114 @@
+#!/usr/bin/perl -w
+###############################################################################
+#
+# PROGRAM: link_data.pl
+#
+#  AUTHOR: Edward J. Sabol <edward.j.sabol@nasa.gov>
+#
+# DESCRIPTION:
+#  Creates symlinks for data products in a Hera user's area.
+#
+###############################################################################
+# High Energy Astrophysics Science Archive Research Center (HEASARC),
+# NASA/Goddard Space Flight Center, Greenbelt, MD 20771, USA.
+#
+# You are free to use this code as you wish, but unless you change
+# it significantly, please leave the above name and address intact.
+###############################################################################
+
+use strict;
+use File::Basename;
+use File::Path qw(make_path);
+
+my $debug = 0;
+my $max_dirs = 20;
+eval {
+    if (@ARGV && defined($ARGV[0]) && ($ARGV[0] eq '--debug')) {
+	$debug = 1;
+	shift(@ARGV);
+    }
+    my @files = ();
+    foreach my $arg (@ARGV) {
+	if (defined($arg) && length($arg) && ($arg =~ /\A\//) && ($arg !~ /\.\./) && ($arg !~ /\/\/.*\/\//)) {
+	    push(@files,$arg);
+	} elsif (defined($arg) && length($arg)) {
+	    die "Invalid file name ($arg).\n";
+	} else {
+	    die "Invalid file name.\n";
+	}
+    }
+    die "File(s) not specified.\n" unless @files;
+    print "files: [ @{[ join(', ',@files) ]} ]\n" if $debug;
+
+    my $num_dirs = 0;
+    foreach my $file (@files) {
+	die "File ($file) does not exist.\n" unless (-e $file);
+	my($top_dirs,$xf) = &cutfile($file);
+	print "$file :: top_dirs = $top_dirs | xf = $xf\n" if $debug;
+	if (-d $file) {
+	    $num_dirs++;
+	    print "num_dirs = $num_dirs\n" if $debug;
+	    next if ($num_dirs > $max_dirs);
+	    my @subfiles = glob("$file/*");
+	    print "subfiles: [ @{[ join(', ',@subfiles) ]} ]\n" if $debug;
+	    push(@files,grep { !/\.\./ } @subfiles);
+	} elsif (-e $xf) {
+	    # File already exists. Do nothing.
+	} else {
+	    my($filename,$new_dirs) = fileparse($xf);
+	    $new_dirs =~ s/\/\z//;
+	    print "$file :: top_dirs = $top_dirs | new_dirs = $new_dirs | filename = $filename\n" if $debug;
+	    unless (-d $new_dirs) {
+		print "make_path($new_dirs)\n" if $debug;
+		make_path($new_dirs)
+		  || die "Could not create directory $new_dirs.\n";
+	    }
+	    $file =~ s|//|/|g;
+	    print "symlink($file,$xf)\n" if $debug;
+	    symlink($file,$xf)
+	      || die "Could not create symbolic link to $file.\n";
+	}
+    }
+};
+if ($@) {
+    my $error = "$@";
+    chomp $error;
+    if (1 || $error =~ /Could not|not specified|Invalid/) {
+	print STDERR "$error\n";
+    } else {
+	print STDERR "Link data failed.\n";
+    }
+    exit -1;
+}
+exit 0;
+
+#------------------------------------------------------------------------------
+sub cutfile {
+    # This routine, aside from some very minor changes, comes from
+    # Browse::HProdGen.
+    my($file) = @_;
+
+    my $cut = index($file, '//');
+
+    # If a "TAR point" is specified, use it. Otherwise,
+    # go two directory levels up from the bottom.
+    my($dir, $xf);
+    if ($cut > 0) {
+	$dir = substr($file, 0, $cut);
+	$xf  = substr($file, $cut + 2);
+    } else {
+	$cut = rindex($file, '/');
+	$cut = rindex($file, '/', $cut - 1);
+	if ($cut > 0) {
+	    $dir = substr($file, 0, $cut);
+	    $xf = substr($file, $cut + 1);
+	} else {
+	    $dir = '/';
+	    $xf = substr($file, 1); # Changed from Browse::HDProdGen.
+	}
+    }
+
+    return($dir,$xf);
+
+} #eosub--cutfile
+#------------------------------------------------------------------------------

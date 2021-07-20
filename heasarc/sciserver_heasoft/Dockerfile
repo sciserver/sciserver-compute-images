@@ -62,7 +62,7 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${HEASOFT_V
 
 # Configure, make, and install...
 RUN cd ${HOME}/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
-   && ./configure --disable-x --prefix=/opt/heasoft 2>&1 | tee ${HOME}/configure.log 
+   && ./configure --prefix=/opt/heasoft 2>&1 | tee ${HOME}/configure.log 
 
 RUN cd ${HOME}/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
  && make 2>&1 | tee ${HOME}/build.log \

@@ -48,6 +48,8 @@ RUN chown -R  ${xmmsas_user}:${xmmsas_group} ${xmmsas_dir}
 
 USER ${xmmsas_user}
 
+ENV SAS_PATH=${xmmsas_dir}
+
 # Configure shells...
 RUN /bin/echo >> ${HOME}/.bashrc \
  && /bin/echo '# Initialize XMMSAS environment' >> ${HOME}/.bashrc \

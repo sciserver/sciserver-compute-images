@@ -1,10 +1,9 @@
-#For debugging 
-FROM sciserver_heasoft:latest
-#FROM sciserver_xmmsas:v6.29.4.13.19.0.0
+FROM sciserver_xmmsas:v6.29.4.13.2.0.8.19.1.0
 
 ARG heasoft_version=6.29
 ARG ciao_version=4.13
-ARG gbmrsp_version=2.0
+ARG fermi_version=2.0.8
+ARG xmmsas_version=19.1.0
 ARG sciserver_group=idies
 ARG sciserver_user=idies
 ARG fermi_user=fermi
@@ -19,18 +18,11 @@ LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/gbmrsp ${gbmrsp_v
 
 USER root
 
-RUN apt-get update -y
-
 
 ## scikit-learn is more complicated.  Leave for SciServer admin.  They've done it in other images.
 
 #RUN pip3 install jupyter
 #RUN pip3 install scikit-learn
-
-
-# Tweak Xspec settings for a no-X11 environment
-RUN /usr/bin/printf "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/scripts/global_customize.tcl
-
 
 
 # Setup SciServer user environment
@@ -49,14 +41,10 @@ RUN conda create --name python3.8 python=3.8 \
  && python -m ipykernel install --user --name=python3.8 --display-name="Python 3.8 (Heasarc)"
 
 
-
-
-
 COPY link_data /usr/local/bin/
 COPY lynx_dump /usr/local/bin/
 COPY pdump /usr/local/bin/
 COPY sciversions /usr/local/bin/
-COPY Xspec.init /opt/heasoft/spectral/manager/
 
 
 RUN /home/idies/miniconda3/envs/python3.8/bin/pip install wurlitzer pyvo pyds9 scikit-learn matplotlib healpy tqdm umap-learn scikit-image pandas specutils aplpy

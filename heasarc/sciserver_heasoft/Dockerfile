@@ -1,4 +1,4 @@
-FROM dockerregistry:443/sciserver-ubuntu18:latest
+FROM sciserver-ubuntu18:latest
 
 ARG version=6.29
 ARG heasarc_data_archive=/FTP
@@ -51,15 +51,6 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${HEASOFT_V
 && tar xzvf heasoft-${HEASOFT_VERSION}${heasoft_tarfile_suffix}.tar.gz \
 && rm -f heasoft-${HEASOFT_VERSION}${heasoft_tarfile_suffix}.tar.gz
 
-#################
-## Debugging way
-## This untars, but only sometimes?  WTF?  Used to but now doesn't 
-#COPY heasoft-6.28src.tar.gz ${HOME} 
-#RUN tar xvzf heasoft-6.28src.tar.gz
-## ------------------
-#RUN echo "DEBUGGING:   Contents of ${HOME}" && ls ${HOME} && echo "DEBUGGING:  Contents of ${HOME}/heasoft-${HEASOFT_VERSION}" && ls ${HOME}/heasoft-${HEASOFT_VERSION} && echo "DEBUGGING:  end"
-#################
-
 # Configure, make, and install...
 RUN cd ${HOME}/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
    && ./configure --prefix=/opt/heasoft 2>&1 | tee ${HOME}/configure.log 
@@ -69,10 +60,7 @@ RUN cd ${HOME}/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
  && make install 2>&1 | tee ${HOME}/install.log
 
 
-#RUN ln -sf ${heasarc_data_archive}/software/lheasoft/lheasoft${HEASOFT_VERSION}/heasoft-${HEASOFT_VERSION}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData
-#RUN ln -sf /home/idies/workspace/headata/FTP/software/lheasoft/lheasoft${HEASOFT_VERSION}/heasoft-${HEASOFT_VERSION}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData
-
-RUN mkdir -p /home/idies/workspace/headata/ ; ln -sf /FTP /home/idies/workspace/headata/FTP
+RUN ln -sf /home/idies/workspace/headata/FTP/software/lheasoft/lheasoft${HEASOFT_VERSION}/heasoft-${HEASOFT_VERSION}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData
 
 
 # Clean up, copy release notes to /opt/heasoft/, and create symlinks....
@@ -81,6 +69,11 @@ RUN cp -p ${HOME}/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/
 RUN rm -rf ${HOME}/heasoft-${HEASOFT_VERSION}* 
 RUN /bin/bash -c 'cd /opt/heasoft/; for loop in x86_64*/*; do ln -sf $loop; done'
 
+
+# Tweak Xspec settings for a no-X11 environment
+RUN /usr/bin/printf "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/scripts/global_customize.tcl
+
+COPY Xspec.init /opt/heasoft/spectral/manager/
 
 
 # Configure shells...

@@ -76,13 +76,13 @@ echo "###  PYTHONPATH is"
 echo $PYTHONPATH
 echo ""
 
-if [ ! -d test/chandra_out ] ; then
-    mkdir -p test/chandra_out
+if [ ! -d test/out_chandra ] ; then
+    mkdir -p test/out_chandra
 else
-    rm -rf test/chandra_out/*
+    rm -rf test/out_chandra/*
 fi
 echo "###   running chandra_repro on a test observation "
-if chandra_repro test/9805 test/chandra_out > test/chandra_out/test_chandra_repro.log  ; then
+if chandra_repro test/9805 test/out_chandra > test/out_chandra/test_chandra_repro.log  ; then
     echo "### Chandra looks OK"
 else
     echo "### ERROR:  Chandra test failed."

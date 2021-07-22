@@ -1,7 +1,0 @@
-#!/bin/csh -f
-if (-d /opt/xmmsas/bin) then
-	/opt/xmmsas/bin/sasversion -v | /usr/bin/cut -d'[' -f2 | /usr/bin/cut -d']' -f1
-else
-	echo "error: XMM SAS not installed"
-	exit 1
-endif

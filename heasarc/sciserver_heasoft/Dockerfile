@@ -3,6 +3,7 @@ FROM sciserver-ubuntu18:latest
 ARG version=6.29
 ARG heasarc_data_archive=/FTP
 ARG caldb_root=/FTP/caldb
+ARG sciserver_user=idies
 
 LABEL version="${version}" \
       description="HEASoft ${version} https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/" \
@@ -36,11 +37,7 @@ RUN apt-get update \
 #RUN conda install python=3.8
 
 
-RUN groupadd heasoft && usermod -a -G heasoft idies \
- && mkdir -p /opt/heasoft \
- && chown -R idies:heasoft /opt/heasoft
-
-USER idies
+USER root
 WORKDIR /home/idies
 
 
@@ -75,6 +72,10 @@ RUN /usr/bin/printf "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectra
 
 COPY Xspec.init /opt/heasoft/spectral/manager/
 
+USER ${sciserver_user}
+WORKDIR /home/${sciserver_user}
+ 
+RUN mkdir -p ${HOME}/pfiles
 
 # Configure shells...
 RUN /bin/echo >> ${HOME}/.bashrc \

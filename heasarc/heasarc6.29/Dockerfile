@@ -6,8 +6,6 @@ ARG fermi_version=2.0.8
 ARG xmmsas_version=19.1.0
 ARG sciserver_group=idies
 ARG sciserver_user=idies
-ARG fermi_user=fermi
-ARG heasoft_group=heasoft
 ARG heasarc_data_archive=/FTP
 ARG caldb_root=/home/idies/workspace/headata/FTP/caldb
 
@@ -32,13 +30,11 @@ WORKDIR /home/${sciserver_user}
 ENV USER=${sciserver_user} \
     LOGNAME=${sciserver_user}
 
-RUN mkdir -p ${HOME}/pfiles
-
+RUN conda init bash
 
 # Create Python 3.8 environment
-RUN conda create --name python3.8 python=3.8 \
- #&& which python  \
- && python -m ipykernel install --user --name=python3.8 --display-name="Python 3.8 (Heasarc)"
+RUN /bin/bash -c "conda create --name python3.8 python=3.8 "
+RUN python -m ipykernel install --user --name=python3.8 --display-name="Python 3.8 (Heasarc)"
 
 
 COPY link_data /usr/local/bin/
@@ -92,9 +88,6 @@ RUN cd $HOME
 
 RUN python -m ipykernel install --user --name python3.8 --display-name "Python 3.8 (Heasarc)" 
 
-### reset profile files and set remaining env variables manually
-
-RUN rm ~/.bashrc && touch  ~/.bashrc && rm ~/.profile && touch  ~/.profile && rm ~/.cshrc && touch  ~/.cshrc
 
 RUN /bin/echo >> ${HOME}/.bashrc \
  && /bin/echo '# Initialize conda python3.8  env'   >> ${HOME}/.bashrc \

@@ -49,21 +49,21 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${HEASOFT_V
 && rm -f heasoft-${HEASOFT_VERSION}${heasoft_tarfile_suffix}.tar.gz
 
 # Configure, make, and install...
-RUN cd ${HOME}/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
-   && ./configure --prefix=/opt/heasoft 2>&1 | tee ${HOME}/configure.log 
+RUN cd /home/idies/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
+   && ./configure --prefix=/opt/heasoft 2>&1 | tee /home/idies/configure.log 
 
-RUN cd ${HOME}/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
- && make 2>&1 | tee ${HOME}/build.log \
- && make install 2>&1 | tee ${HOME}/install.log
+RUN cd /home/idies/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
+ && make 2>&1 | tee /home/idies/build.log \
+ && make install 2>&1 | tee /home/idies/install.log
 
 
 RUN ln -sf /home/idies/workspace/headata/FTP/software/lheasoft/lheasoft${HEASOFT_VERSION}/heasoft-${HEASOFT_VERSION}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData
 
 
 # Clean up, copy release notes to /opt/heasoft/, and create symlinks....
-RUN gzip -9 ${HOME}/*.log 
-RUN cp -p ${HOME}/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/ 
-RUN rm -rf ${HOME}/heasoft-${HEASOFT_VERSION}* 
+RUN gzip -9 /home/idies/*.log 
+RUN cp -p /home/idies/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/ 
+RUN rm -rf /home/idies/heasoft-${HEASOFT_VERSION}* 
 RUN /bin/bash -c 'cd /opt/heasoft/; for loop in x86_64*/*; do ln -sf $loop; done'
 
 
@@ -75,64 +75,64 @@ COPY Xspec.init /opt/heasoft/spectral/manager/
 USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}
  
-RUN mkdir -p ${HOME}/pfiles
+RUN mkdir -p /home/idies/pfiles
 
 # Configure shells...
-RUN /bin/echo >> ${HOME}/.bashrc \
- && /bin/echo '# Initialize HEASoft environment' >> ${HOME}/.bashrc \
- && /bin/echo 'export HEADAS=/opt/heasoft' >> ${HOME}/.bashrc \
- && /bin/echo '. $HEADAS/headas-init.sh' >> ${HOME}/.bashrc \
- && /bin/echo >> ${HOME}/.bashrc \
- && /bin/echo '# Initialize environment for CALDB' >> ${HOME}/.bashrc \
- && /bin/echo 'export CALDB='${caldb_root} >> ${HOME}/.bashrc \
- && /bin/echo 'export CALDBCONFIG=$CALDB/software/tools/caldb.config' >> ${HOME}/.bashrc \
- && /bin/echo 'export CALDBALIAS=$CALDB/software/tools/alias_config.fits' >> ${HOME}/.bashrc \
- && /bin/echo >> ${HOME}/.bashrc \
- && /bin/echo '# Configure PFILES for common environment' >> ${HOME}/.bashrc \
- && /bin/echo "export PFILES=\"${HOME}/pfiles;/opt/heasoft/syspfiles:${CIAO_INSTALL_DIR}/contrib/param:${CIAO_INSTALL_DIR}/param\"" >> ${HOME}/.bashrc \
- && /bin/echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> ${HOME}/.bashrc \ 
- && /bin/echo 'export PATH=/home/idies/miniconda3/envs/python3.8/bin:${PATH}' >> ${HOME}/.bashrc
+RUN /bin/echo >> /home/idies/.bashrc \
+ && /bin/echo '# Initialize HEASoft environment' >> /home/idies/.bashrc \
+ && /bin/echo 'export HEADAS=/opt/heasoft' >> /home/idies/.bashrc \
+ && /bin/echo '. $HEADAS/headas-init.sh' >> /home/idies/.bashrc \
+ && /bin/echo >> /home/idies/.bashrc \
+ && /bin/echo '# Initialize environment for CALDB' >> /home/idies/.bashrc \
+ && /bin/echo 'export CALDB='${caldb_root} >> /home/idies/.bashrc \
+ && /bin/echo 'export CALDBCONFIG=$CALDB/software/tools/caldb.config' >> /home/idies/.bashrc \
+ && /bin/echo 'export CALDBALIAS=$CALDB/software/tools/alias_config.fits' >> /home/idies/.bashrc \
+ && /bin/echo >> /home/idies/.bashrc \
+ && /bin/echo '# Configure PFILES for common environment' >> /home/idies/.bashrc \
+ && /bin/echo "export PFILES=\"/home/idies/pfiles;/opt/heasoft/syspfiles:${CIAO_INSTALL_DIR}/contrib/param:${CIAO_INSTALL_DIR}/param\"" >> /home/idies/.bashrc \
+ && /bin/echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.bashrc \ 
+ && /bin/echo 'export PATH=/home/idies/miniconda3/envs/python3.8/bin:${PATH}' >> /home/idies/.bashrc
 
 
-RUN /bin/echo >> ${HOME}/.profile \
- && /bin/echo '# Initialize HEASoft environment' >> ${HOME}/.profile \
- && /bin/echo 'export HEADAS=/opt/heasoft' >> ${HOME}/.profile \
- && /bin/echo '. $HEADAS/headas-init.sh' >> ${HOME}/.profile \
- && /bin/echo >> ${HOME}/.profile \
- && /bin/echo '# Initialize CIAO environment' >> ${HOME}/.profile \
- && /bin/echo ". ${CIAO_INSTALL_DIR}/bin/ciao.bash -o -q" >> ${HOME}/.profile \
- && /bin/echo >> ${HOME}/.profile \
- && /bin/echo '# Initialize environment for CALDB' >> ${HOME}/.profile \
- && /bin/echo 'export CALDB='${caldb_root} >> ${HOME}/.profile \
- && /bin/echo 'export CALDBCONFIG=$CALDB/software/tools/caldb.config' >> ${HOME}/.profile \
- && /bin/echo 'export CALDBALIAS=$CALDB/software/tools/alias_config.fits' >> ${HOME}/.profile \
- && /bin/echo >> ${HOME}/.profile \
- && /bin/echo '# Configure PFILES for common environment' >> ${HOME}/.profile \
- && /bin/echo "export PFILES=\"${HOME}/pfiles;/opt/heasoft/syspfiles:${CIAO_INSTALL_DIR}/contrib/param:${CIAO_INSTALL_DIR}/param\"" >> ${HOME}/.profile \
- && /bin/echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> ${HOME}/.profile \ 
- && /bin/echo 'export PATH=/home/idies/miniconda3/envs/python3.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> ${HOME}/.profile
+RUN /bin/echo >> /home/idies/.profile \
+ && /bin/echo '# Initialize HEASoft environment' >> /home/idies/.profile \
+ && /bin/echo 'export HEADAS=/opt/heasoft' >> /home/idies/.profile \
+ && /bin/echo '. $HEADAS/headas-init.sh' >> /home/idies/.profile \
+ && /bin/echo >> /home/idies/.profile \
+ && /bin/echo '# Initialize CIAO environment' >> /home/idies/.profile \
+ && /bin/echo ". ${CIAO_INSTALL_DIR}/bin/ciao.bash -o -q" >> /home/idies/.profile \
+ && /bin/echo >> /home/idies/.profile \
+ && /bin/echo '# Initialize environment for CALDB' >> /home/idies/.profile \
+ && /bin/echo 'export CALDB='${caldb_root} >> /home/idies/.profile \
+ && /bin/echo 'export CALDBCONFIG=$CALDB/software/tools/caldb.config' >> /home/idies/.profile \
+ && /bin/echo 'export CALDBALIAS=$CALDB/software/tools/alias_config.fits' >> /home/idies/.profile \
+ && /bin/echo >> /home/idies/.profile \
+ && /bin/echo '# Configure PFILES for common environment' >> /home/idies/.profile \
+ && /bin/echo "export PFILES=\"/home/idies/pfiles;/opt/heasoft/syspfiles:${CIAO_INSTALL_DIR}/contrib/param:${CIAO_INSTALL_DIR}/param\"" >> /home/idies/.profile \
+ && /bin/echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.profile \ 
+ && /bin/echo 'export PATH=/home/idies/miniconda3/envs/python3.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.profile
 
 
-RUN /bin/echo >> ${HOME}/.cshrc \
- && /bin/echo '# Aliases' >> ${HOME}/.cshrc \
- && /bin/echo 'if ( $?tcsh && $?prompt ) alias ls ls-F' >> ${HOME}/.cshrc \
- && /bin/echo 'alias ll ls -l' >> ${HOME}/.cshrc \
- && /bin/echo 'alias la ls -a' >> ${HOME}/.cshrc \
- && /bin/echo 'alias lal ls -al' >> ${HOME}/.cshrc \ 
- && /bin/echo >> ${HOME}/.cshrc \
- && /bin/echo '# Initialize HEASoft environment' >> ${HOME}/.cshrc \
- && /bin/echo 'setenv HEADAS /opt/heasoft' >> ${HOME}/.cshrc \
- && /bin/echo 'source $HEADAS/headas-init.csh' >> ${HOME}/.cshrc \
- && /bin/echo >> ${HOME}/.cshrc \
- && /bin/echo '# Initialize environment for CALDB' >> ${HOME}/.cshrc \
- && /bin/echo 'setenv CALDB '${caldb_root} >> ${HOME}/.cshrc \
- && /bin/echo 'setenv CALDBCONFIG $CALDB/software/tools/caldb.config' >> ${HOME}/.cshrc \
- && /bin/echo 'setenv CALDBALIAS $CALDB/software/tools/alias_config.fits' >> ${HOME}/.cshrc \
- && /bin/echo >> ${HOME}/.cshrc \
- && /bin/echo '# Configure PFILES for common environment' >> ${HOME}/.cshrc \
- && /bin/echo "setenv PFILES \"${HOME}/pfiles;/opt/heasoft/syspfiles\"" >> ${HOME}/.cshrc \
- && /bin/echo 'setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}'  >> ${HOME}/.cshrc \ 
- && /bin/echo 'setenv PATH /home/idies/miniconda3/envs/python3.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}'  >> ${HOME}/.cshrc
+RUN /bin/echo >> /home/idies/.cshrc \
+ && /bin/echo '# Aliases' >> /home/idies/.cshrc \
+ && /bin/echo 'if ( $?tcsh && $?prompt ) alias ls ls-F' >> /home/idies/.cshrc \
+ && /bin/echo 'alias ll ls -l' >> /home/idies/.cshrc \
+ && /bin/echo 'alias la ls -a' >> /home/idies/.cshrc \
+ && /bin/echo 'alias lal ls -al' >> /home/idies/.cshrc \ 
+ && /bin/echo >> /home/idies/.cshrc \
+ && /bin/echo '# Initialize HEASoft environment' >> /home/idies/.cshrc \
+ && /bin/echo 'setenv HEADAS /opt/heasoft' >> /home/idies/.cshrc \
+ && /bin/echo 'source $HEADAS/headas-init.csh' >> /home/idies/.cshrc \
+ && /bin/echo >> /home/idies/.cshrc \
+ && /bin/echo '# Initialize environment for CALDB' >> /home/idies/.cshrc \
+ && /bin/echo 'setenv CALDB '${caldb_root} >> /home/idies/.cshrc \
+ && /bin/echo 'setenv CALDBCONFIG $CALDB/software/tools/caldb.config' >> /home/idies/.cshrc \
+ && /bin/echo 'setenv CALDBALIAS $CALDB/software/tools/alias_config.fits' >> /home/idies/.cshrc \
+ && /bin/echo >> /home/idies/.cshrc \
+ && /bin/echo '# Configure PFILES for common environment' >> /home/idies/.cshrc \
+ && /bin/echo "setenv PFILES \"/home/idies/pfiles;/opt/heasoft/syspfiles\"" >> /home/idies/.cshrc \
+ && /bin/echo 'setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}'  >> /home/idies/.cshrc \ 
+ && /bin/echo 'setenv PATH /home/idies/miniconda3/envs/python3.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}'  >> /home/idies/.cshrc
 
 ENV SHELL=/bin/bash
 

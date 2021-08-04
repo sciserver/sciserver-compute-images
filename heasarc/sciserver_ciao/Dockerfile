@@ -2,6 +2,7 @@ FROM sciserver_heasoft:v6.29
 
 ARG heasoft_version=6.29
 ARG ciao_version=4.13
+ARG sciserver_user=idies
 #ARG caldb_root=/FTP/caldb
 ARG caldb_root=/home/idies/workspace/headata/FTP/caldb
 

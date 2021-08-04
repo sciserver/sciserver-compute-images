@@ -5,6 +5,7 @@ ARG heasoft_version=6.29
 ARG ciao_version=4.13
 ARG fermi_version=2.0.8
 ARG fermi_dir=/opt/fermitools
+ARG sciserver_user=idies
 
 LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/Fermitools ${fermi_version}" \
       description="Fermitools User Environment Image for SciServer" \

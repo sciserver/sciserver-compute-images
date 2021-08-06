@@ -5,13 +5,14 @@ the SciServer help desk.
 
 This is the import hierarchy:
 
-idies-ubuntu18 -> miniconda-ubuntu18 -> sciserver-ubuntu18 ->
-sciserver_heasoft -> sciserver_ciao -> sciserver_fermi -> sciserver_xmmsas -> heasarc6.28
+	idies-ubuntu18 -> miniconda-ubuntu18 -> sciserver-ubuntu18 -> sciserver_heasoft -> sciserver_ciao -> sciserver_fermi -> sciserver_xmmsas -> heasarc6.29
 
 
 Note that when you run the image, you are user idies in the base conda
 environment.  The user's .bashrc has NOT been run.  If you then type
 bash, it gets used and puts you into the python3.8 environment that
-the user will start in when they open a terminal in Jupyter.
+the user will start in when they open a terminal in Jupyter.  This
+environment has the HEASoft set up and the python libraries listed in
+heasarc6.29/requirements.txt.  
 
 

@@ -14,16 +14,16 @@
 # it significantly, please leave the above name and address intact.
 #=============================================================================#
 
-IMAGE_NAME = sciserver_sciuser
-IMAGE_VERSION = 6.8.4.12.18.0.0
+IMAGE_NAME = heasarc
+IMAGE_VERSION = 6.29
 IMAGE_LABEL = v$(IMAGE_VERSION)
 
 image: $(PREREQS)
 	@echo "Building Docker image ${IMAGE_NAME}:${IMAGE_LABEL}..."
-	-docker build --no-cache --network=host -t $(IMAGE_NAME):$(IMAGE_LABEL) .
+	docker build --no-cache --network=host -t $(IMAGE_NAME):$(IMAGE_LABEL) .
 	-(docker images -q -f dangling=true | xargs docker rmi)
 
 latest: image
 	@echo "Tagging Docker image ${IMAGE_NAME}:${IMAGE_LABEL} with latest..."
-	-docker build -t $(IMAGE_NAME):latest .
+	docker build -t $(IMAGE_NAME):latest .
 	-(docker images -q -f dangling=true | xargs docker rmi)

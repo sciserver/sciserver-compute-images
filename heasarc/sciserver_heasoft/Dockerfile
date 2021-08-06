@@ -61,7 +61,7 @@ RUN ln -sf /home/idies/workspace/headata/FTP/software/lheasoft/lheasoft${HEASOFT
 
 
 # Clean up, copy release notes to /opt/heasoft/, and create symlinks....
-RUN gzip -9 /home/idies/*.log 
+RUN gzip -9 /home/idies/*.log && mv /home/idies/*.log.gz /opt/heasoft/.
 RUN cp -p /home/idies/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/ 
 RUN rm -rf /home/idies/heasoft-${HEASOFT_VERSION}* 
 RUN /bin/bash -c 'cd /opt/heasoft/; for loop in x86_64*/*; do ln -sf $loop; done'

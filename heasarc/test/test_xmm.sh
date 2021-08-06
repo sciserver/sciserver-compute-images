@@ -12,7 +12,7 @@ obsid='0123700101'
 
 #cp -pr  sciserver-docker/test/data/FTP/xmm/data/rev0/${obsid} sciserver-docker/test/xmm_out/.
 
-cd test/xmm_out/${obsid}/
+cd xmm_out/${obsid}/
 
 echo $PWD
 mkdir reproc

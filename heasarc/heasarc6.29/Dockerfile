@@ -33,18 +33,21 @@ ENV USER=${sciserver_user} \
 RUN conda init bash
 
 # Create Python 3.8 environment
+RUN /bin/bash -c "conda init bash"
 RUN /bin/bash -c "conda create --name python3.8 python=3.8 "
 RUN /bin/bash -c "conda activate python3.8 ;  pip install ipykernel "
 ## Add to kernels available through Jupyter
 
 RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --user --name=python3.8 --display-name='Python 3.8 (Heasarc)' "
 
-RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/ciao --display-name='Python 3.8 (Ciao) ' "
-
-RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install  --prefix=/opt/fermitools --display-name='Python 3.8 (Fermitools)' "
-
-RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/xmmsas --display-name='Python 3.8 (XMM SAS)' "
-
+## ----------
+##  To be fixed somehow
+##RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/ciao --display-name='Python 3.8 (Ciao) ' "
+##
+##RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install  --prefix=/opt/fermitools --display-name='Python 3.8 (Fermitools)' "
+##
+##RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/xmmsas --display-name='Python 3.8 (XMM SAS)' "
+##----------
 
 
 COPY link_data /usr/local/bin/
@@ -67,10 +70,10 @@ RUN cd /home/idies/SciScript-Python && git checkout sciserver-v2.0.13  && cd py3
 ENV HOME=/home/idies
 RUN cd $HOME
 
+## Why does this not get sourced when you start running the docker image? 
 RUN /bin/echo >> ${HOME}/.bashrc \
  && /bin/echo '# Initialize conda python3.8  env'   >> ${HOME}/.bashrc \
  && /bin/echo 'source activate python3.8' >> ${HOME}/.bashrc
-
 
 RUN /bin/echo >> ${HOME}/.profile \
  && /bin/echo '# Initialize conda python3.8  env'  >> ${HOME}/.profile \
@@ -91,7 +94,8 @@ RUN rm -rf /home/idies/workspace/headata/
 
 RUN chgrp idies /usr/local/bin/*
 
-RUN apt-get install zip unzip
+## Doesn't work?
+#RUN apt-get install zip unzip
 
 ## To be removed when Ubuntu updated to 20:
 #Path for xmm:

@@ -1,0 +1,16 @@
+ipykernel
+wurlitzer
+numpy
+pyvo
+pyds9
+scikit-learn
+matplotlib
+healpy
+tqdm
+umap-learn
+scikit-image
+pandas
+specutils
+aplpy
+pygments==2.6.1
+

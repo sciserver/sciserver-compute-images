@@ -2,6 +2,7 @@ FROM sciserver_heasoft:v6.29
 
 ARG heasoft_version=6.29
 ARG ciao_version=4.13
+ARG ciao_dir=/opt/ciao
 ARG sciserver_user=idies
 #ARG caldb_root=/FTP/caldb
 ARG caldb_root=/home/idies/workspace/headata/FTP/caldb
@@ -25,23 +26,35 @@ RUN apt-get update \
 USER ${sciserver_user}
 RUN conda update -n base conda
 
-USER root
 # Create directory
-RUN mkdir -p /opt/ciao 
+USER root
+RUN mkdir -p ${ciao_dir} && chown -R idies:idies ${ciao_dir}
+## To install with conda, have to do it as the idies user
+##   otherwise it'll write root-owned files in the miniconda 
+##   area and make it impossible to add more things.
+USER ${sciserver_user}
 
 ENV CIAO_VERSION=${ciao_version}
-ENV CIAO_INSTALL_DIR=/opt/ciao
-
+ENV CIAO_INSTALL_DIR=${ciao_dir}
 
 # Install CIAO
-RUN conda create -y -p /opt/ciao -c https://cxc.cfa.harvard.edu/conda/ciao ciao
-RUN conda install -y -p /opt/ciao -c https://cxc.cfa.harvard.edu/conda/ciao sherpa 
-RUN conda install -y -p /opt/ciao -c https://cxc.cfa.harvard.edu/conda/ciao ciao-contrib 
+RUN conda create -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao ciao
+RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao sherpa 
+RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao ciao-contrib 
 RUN echo foo
-RUN conda install -y -p /opt/ciao -c https://cxc.cfa.harvard.edu/conda/ciao caldb_main
-RUN conda install -y -p /opt/ciao -c https://cxc.cfa.harvard.edu/conda/ciao marx
+RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao caldb_main
+RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao marx
+
+## But we don't want the user to be able to edit
+##   this area (and mess up their container
+##   and cause confusion) so:  
+USER root
+RUN chown -R root:root ${ciao_dir}
+
 
 USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}
 
+#  Init's the .bashrc
+RUN conda init bash
 

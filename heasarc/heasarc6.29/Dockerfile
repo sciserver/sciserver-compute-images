@@ -34,7 +34,17 @@ RUN conda init bash
 
 # Create Python 3.8 environment
 RUN /bin/bash -c "conda create --name python3.8 python=3.8 "
-RUN python -m ipykernel install --user --name=python3.8 --display-name="Python 3.8 (Heasarc)"
+RUN /bin/bash -c "conda activate python3.8 ;  pip install ipykernel "
+## Add to kernels available through Jupyter
+
+RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --user --name=python3.8 --display-name='Python 3.8 (Heasarc)' "
+
+RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/ciao --display-name='Python 3.8 (Ciao) ' "
+
+RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install  --prefix=/opt/fermitools --display-name='Python 3.8 (Fermitools)' "
+
+RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/xmmsas --display-name='Python 3.8 (XMM SAS)' "
+
 
 
 COPY link_data /usr/local/bin/
@@ -42,52 +52,20 @@ COPY lynx_dump /usr/local/bin/
 COPY pdump /usr/local/bin/
 COPY sciversions /usr/local/bin/
 
-
-RUN /home/idies/miniconda3/envs/python3.8/bin/pip install wurlitzer pyvo pyds9 scikit-learn matplotlib healpy tqdm umap-learn scikit-image pandas specutils aplpy
-RUN /home/idies/miniconda3/envs/python3.8/bin/pip install jupyter --upgrade
-RUN /home/idies/miniconda3/envs/python3.8/bin/pip install jupyterlab --upgrade
-RUN /home/idies/miniconda3/envs/python3.8/bin/pip install pygments==2.6.1
-
-#RUN /bin/bash -c " source activate base &&  pip install jupyter --upgrade && pip install jupyterlab --upgrade && pip install pygments==2.6.1"
-
-
-#RUN /bin/bash -c " source activate python3.8 && which pip && pip install numpy scipy scikit-learn matplotlib healpy tqdm umap-learn scikit-image pandas specutils \
-#    && pip install wurlitzer pyvo pyds9 aplpy \ 
-#    && pip install jupyter --upgrade && pip install jupyterlab --upgrade && pip install pygments==2.6.1"
-
-#RUN which pip && pip install jupyter --upgrade
-#RUN which pip && pip install jupyterlab --upgrade
-#RUN pip install pygments==2.6.1
-
-
-#RUN /home/idies/miniconda3/envs/python3.8/bin/ipython kernel install --user --name=python3.8 --display-name="Python 3.8 (Heasarc)"
-#RUN /home/idies/miniconda3/envs/python3.8/bin/ipython kernel install --user --name=python3.8 --display-name="Python 3.8 (Heasarc)"
-#RUN /home/idies/miniconda3/bin/ipython kernel install  --name=python3.8 --display-name="Python 3.8 (Heasarc)"
-
-
-#RUN /home/idies/miniconda3/envs/python3.8/bin/jupyter kernelspec remove -f python3
-#RUN /home/idies/miniconda3/bin/jupyter kernelspec remove -f python3
-#RUN jupyter kernelspec remove -f python3
+RUN /bin/bash -c "conda activate python3.8 ; pip install jupyter --upgrade" 
+RUN /bin/bash -c "conda activate python3.8 ; pip install jupyterlab --upgrade"
+## Install python libraries
+ADD requirements.txt requirements.txt
+RUN pip install -r requirements.txt --upgrade && rm requirements.txt
 
 
 COPY jupyter_notebook_config.py /home/idies/.jupyter/jupyter_notebook_config.py
-#RUN alias jupyter2="/opt/ciao-4.12/ots/bin/jupyter"
-#RUN /bin/echo >> ${HOME}/.bashrc \
-# && /bin/echo '# Create alias for jupyter in ciao python installation' >> ${HOME}/.bashrc \
-# && /bin/echo 'alias jupyter2="/opt/ciao/ots/bin/jupyter"'  >> ${HOME}/.bashrc 
 
 
 RUN cd /home/idies/SciScript-Python && git checkout sciserver-v2.0.13  && cd py3 && /home/idies/miniconda3/envs/python3.8/bin/python setup.py install
 
-#CMD export PATH=/home/userr:/home/idies/miniconda3/envs/python3.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH
-
 ENV HOME=/home/idies
 RUN cd $HOME
-
-#RUN /bin/bash -c "source activate python3.8"
-
-RUN python -m ipykernel install --user --name python3.8 --display-name "Python 3.8 (Heasarc)" 
-
 
 RUN /bin/echo >> ${HOME}/.bashrc \
  && /bin/echo '# Initialize conda python3.8  env'   >> ${HOME}/.bashrc \
@@ -102,8 +80,6 @@ RUN /bin/bash -c ". $HEADAS/headas-init.sh"
 
 USER root
 
-#RUN ipython kernel install  --name=python3.8 --display-name="Python 3.8 (Heasarc)"
-
 COPY startup.sh /opt/startup.sh
 RUN chmod +rx /opt/startup.sh
 
@@ -117,6 +93,7 @@ RUN chgrp idies /usr/local/bin/*
 
 RUN apt-get install zip unzip
 
+## To be removed when Ubuntu updated to 20:
 #Path for xmm:
 RUN wget -q -O /tmp/libpng12.deb http://mirrors.kernel.org/ubuntu/pool/main/libp/libpng/libpng12-0_1.2.54-1ubuntu1_amd64.deb \
   && dpkg -i /tmp/libpng12.deb \
@@ -125,8 +102,3 @@ RUN wget -q -O /tmp/libpng12.deb http://mirrors.kernel.org/ubuntu/pool/main/libp
 RUN chgrp idies /home/idies/.jupyter/jupyter_notebook_config.py && chmod g+rw /home/idies/.jupyter/jupyter_notebook_config.py
 
 USER idies
-
-#USER idies
-#SHELL ["/bin/bash", "-c"]
-#RUN /bin/bash -c "conda init bash && source ~/.bashrc & conda activate python3.8"
-#USER root

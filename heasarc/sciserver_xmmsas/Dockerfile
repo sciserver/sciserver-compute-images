@@ -1,23 +1,28 @@
 FROM sciserver_fermi:v6.29.4.13.2.0.8
 
-ARG version$=6.29.4.13.19.1.0
+ARG version=6.29.4.13.2.0.8.19.1.0
 ARG heasoft_version=6.29
 ARG ciao_version=4.13
 ARG fermi_version=2.0.8
 ARG xmmsas_version=19.1.0
 ARG xmmsas_dir=/opt/xmmsas
+ARG sciserver_user=idies
 
 LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/Fermitools ${fermi_version}" \
       description="Fermitools User Environment Image for SciServer" \
       maintainer="NASA/GSFC/HEASARC https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback and mtaghiza"
 
-USER root
-
 
 ## Instructions from Xmmsas page
 ## 
 
-RUN mkdir -p ${xmmsas_dir} 
+# Create directory
+USER root
+RUN mkdir -p ${xmmsas_dir} && chown -R idies:idies ${xmmsas_dir}
+## To install with conda, have to do it as the idies user
+##   otherwise it'll write root-owned files in the miniconda 
+##   area and make it impossible to add more things.
+USER ${sciserver_user}
 
 WORKDIR ${xmmsas_dir}
 RUN conda create -y -p ${xmmsas_dir}
@@ -35,6 +40,12 @@ RUN /bin/bash -c ". /home/idies/miniconda3/etc/profile.d/conda.sh ; conda activa
 RUN mv xmmsas_20210317_1624/* . && rmdir xmmsas_20210317_1624
 
 ENV SAS_PATH=${xmmsas_dir}
+
+## But we don't want the user to be able to edit
+##   this area (and mess up their container
+##   and cause confusion) so:  
+USER root
+RUN chown -R root:root ${xmmsas_dir}
 
 USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}

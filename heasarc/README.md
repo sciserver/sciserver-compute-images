@@ -5,7 +5,6 @@ the SciServer help desk.
 
 This is the import hierarchy:
 
-idies-ubuntu18 -> miniconda-ubuntu18 -> sciserver-ubuntu18 ->
-sciserver_heasoft -> sciserver_ciao -> sciserver_fermi -> sciserver_xmmsas -> heasarc6.28
+idies-ubuntu18 -> miniconda-ubuntu18 -> sciserver-ubuntu18 -> sciserver_heasoft -> sciserver_ciao -> sciserver_xmmsas -> heasarc6.28
 
 

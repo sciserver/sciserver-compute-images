@@ -17,6 +17,7 @@ LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/gbmrsp ${gbmrsp_v
 USER root
 
 
+
 ## scikit-learn is more complicated.  Leave for SciServer admin.  They've done it in other images.
 
 #RUN pip3 install jupyter
@@ -42,25 +43,19 @@ RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --user
 
 ## ----------
 ##  To be fixed somehow
-##RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/ciao --display-name='Python 3.8 (Ciao) ' "
+RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/ciao --display-name='Python 3.8 (Ciao) ' "
 ##
-##RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install  --prefix=/opt/fermitools --display-name='Python 3.8 (Fermitools)' "
+RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install  --prefix=/opt/fermitools --display-name='Python 3.8 (Fermitools)' "
 ##
-##RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/xmmsas --display-name='Python 3.8 (XMM SAS)' "
+RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/xmmsas --display-name='Python 3.8 (XMM SAS)' "
 ##----------
 
-
-COPY link_data /usr/local/bin/
-COPY lynx_dump /usr/local/bin/
-COPY pdump /usr/local/bin/
-COPY sciversions /usr/local/bin/
 
 RUN /bin/bash -c "conda activate python3.8 ; pip install jupyter --upgrade" 
 RUN /bin/bash -c "conda activate python3.8 ; pip install jupyterlab --upgrade"
 ## Install python libraries
 ADD requirements.txt requirements.txt
 RUN pip install -r requirements.txt --upgrade && rm requirements.txt
-
 
 COPY jupyter_notebook_config.py /home/idies/.jupyter/jupyter_notebook_config.py
 
@@ -83,6 +78,11 @@ RUN /bin/bash -c ". $HEADAS/headas-init.sh"
 
 USER root
 
+COPY link_data /usr/local/bin/
+COPY lynx_dump /usr/local/bin/
+COPY pdump /usr/local/bin/
+COPY sciversions /usr/local/bin/
+
 COPY startup.sh /opt/startup.sh
 RUN chmod +rx /opt/startup.sh
 
@@ -93,6 +93,8 @@ RUN ln -s /home/idies/workspace/headata/FTP /FTP
 RUN rm -rf /home/idies/workspace/headata/
 
 RUN chgrp idies /usr/local/bin/*
+
+RUN chown -R root:idies /opt
 
 ## Doesn't work?
 #RUN apt-get install zip unzip

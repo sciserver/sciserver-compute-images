@@ -41,12 +41,6 @@ RUN mv xmmsas_20210317_1624/* . && rmdir xmmsas_20210317_1624
 
 ENV SAS_PATH=${xmmsas_dir}
 
-## But we don't want the user to be able to edit
-##   this area (and mess up their container
-##   and cause confusion) so:  
-USER root
-RUN chown -R root:root ${xmmsas_dir}
-
 USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}
 

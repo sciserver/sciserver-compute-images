@@ -28,11 +28,4 @@ RUN conda create -y -p ${fermi_dir} -c conda-forge -c fermi fermitools python=3 
 
 RUN /bin/bash -c ". /home/idies/miniconda3/etc/profile.d/conda.sh ; conda activate ${fermi_dir}; pip install fermipy -t ${fermi_dir} "
 
-## But we don't want the user to be able to edit
-##   this area (and mess up their container
-##   and cause confusion) so:  
-USER root
-RUN chown -R root:root ${fermi_dir}
-
-USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}

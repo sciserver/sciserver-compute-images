@@ -45,12 +45,6 @@ RUN echo foo
 RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao caldb_main
 RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao marx
 
-## But we don't want the user to be able to edit
-##   this area (and mess up their container
-##   and cause confusion) so:  
-USER root
-RUN chown -R root:root ${ciao_dir}
-
 
 USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}

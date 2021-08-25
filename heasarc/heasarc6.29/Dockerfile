@@ -1,27 +1,14 @@
-FROM sciserver_xmmsas:v6.29.4.13.2.0.8.19.1.0
+FROM sciserver_heasoft:v6.29
 
 ARG heasoft_version=6.29
-ARG ciao_version=4.13
-ARG fermi_version=2.0.8
-ARG xmmsas_version=19.1.0
 ARG sciserver_group=idies
 ARG sciserver_user=idies
 ARG heasarc_data_archive=/FTP
 ARG caldb_root=/home/idies/workspace/headata/FTP/caldb
 
-LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/gbmrsp ${gbmrsp_version}" \
-      description="HEASoft+CIAO User Environment Image" \
+LABEL version="HEASoft ${heasoft_version}" \
+      description="HEASoft User Environment Image" \
       maintainer="NASA/GSFC/HEASARC https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback"
-
-
-USER root
-
-
-
-## scikit-learn is more complicated.  Leave for SciServer admin.  They've done it in other images.
-
-#RUN pip3 install jupyter
-#RUN pip3 install scikit-learn
 
 
 # Setup SciServer user environment
@@ -41,16 +28,6 @@ RUN /bin/bash -c "conda activate python3.8 ;  pip install ipykernel "
 
 RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --user --name=python3.8 --display-name='Python 3.8 (Heasarc)' "
 
-## ----------
-##  To be fixed somehow
-RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/ciao --display-name='Python 3.8 (Ciao) ' "
-##
-RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install  --prefix=/opt/fermitools --display-name='Python 3.8 (Fermitools)' "
-##
-RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --prefix=/opt/xmmsas --display-name='Python 3.8 (XMM SAS)' "
-##----------
-
-
 RUN /bin/bash -c "conda activate python3.8 ; pip install jupyter --upgrade" 
 RUN /bin/bash -c "conda activate python3.8 ; pip install jupyterlab --upgrade"
 ## Install python libraries
@@ -58,7 +35,6 @@ ADD requirements.txt requirements.txt
 RUN pip install -r requirements.txt --upgrade && rm requirements.txt
 
 COPY jupyter_notebook_config.py /home/idies/.jupyter/jupyter_notebook_config.py
-
 
 RUN cd /home/idies/SciScript-Python && git checkout sciserver-v2.0.13  && cd py3 && /home/idies/miniconda3/envs/python3.8/bin/python setup.py install
 
@@ -94,16 +70,8 @@ RUN rm -rf /home/idies/workspace/headata/
 
 RUN chgrp idies /usr/local/bin/*
 
-RUN chown -R root:idies /opt
-
 ## Doesn't work?
 #RUN apt-get install zip unzip
-
-## To be removed when Ubuntu updated to 20:
-#Path for xmm:
-RUN wget -q -O /tmp/libpng12.deb http://mirrors.kernel.org/ubuntu/pool/main/libp/libpng/libpng12-0_1.2.54-1ubuntu1_amd64.deb \
-  && dpkg -i /tmp/libpng12.deb \
-  && rm /tmp/libpng12.deb
 
 RUN chgrp idies /home/idies/.jupyter/jupyter_notebook_config.py && chmod g+rw /home/idies/.jupyter/jupyter_notebook_config.py
 

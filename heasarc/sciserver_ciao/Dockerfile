@@ -38,12 +38,14 @@ ENV CIAO_VERSION=${ciao_version}
 ENV CIAO_INSTALL_DIR=${ciao_dir}
 
 # Install CIAO
-RUN conda create -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao ciao
-RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao sherpa 
-RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao ciao-contrib 
+##  Sometimes these fail fetching from CXC, so separate RUNs 
+##  not to have to redo all
+RUN conda create -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao ciao && conda clean -y --all
+RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao sherpa && conda clean -y --all
+RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao ciao-contrib && conda clean -y --all
 RUN echo foo
-RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao caldb_main
-RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao marx
+RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao caldb_main&& conda clean -y --all
+RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao marx && conda clean -y --all
 
 
 USER ${sciserver_user}

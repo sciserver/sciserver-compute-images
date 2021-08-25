@@ -8,7 +8,7 @@ ARG xmmsas_version=19.1.0
 ARG xmmsas_dir=/opt/xmmsas
 ARG sciserver_user=idies
 
-LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/Fermitools ${fermi_version}" /XMM SAS ${xmmsas_version} \
+LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/Fermitools ${fermi_version}/XMM SAS ${xmmsas_version}" \
       description="XMM SAS User Environment Image for SciServer" \
       maintainer="NASA/GSFC/HEASARC https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback and mtaghiza"
 

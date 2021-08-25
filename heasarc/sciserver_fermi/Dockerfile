@@ -24,7 +24,7 @@ RUN mkdir -p ${fermi_dir} && chown -R idies:idies ${fermi_dir}
 USER ${sciserver_user}
 
 # Install Fermi
-RUN conda create -y -p ${fermi_dir} -c conda-forge -c fermi fermitools python=3 clhep=2.4.4.1
+RUN conda create -y -p ${fermi_dir} -c conda-forge -c fermi fermitools python=3 clhep=2.4.4.1 && conda clean -y --all
 
 RUN /bin/bash -c ". /home/idies/miniconda3/etc/profile.d/conda.sh ; conda activate ${fermi_dir}; pip install fermipy -t ${fermi_dir} "
 

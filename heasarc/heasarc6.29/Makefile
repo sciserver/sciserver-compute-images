@@ -25,5 +25,5 @@ image: $(PREREQS)
 
 latest: image
 	@echo "Tagging Docker image ${IMAGE_NAME}:${IMAGE_LABEL} with latest..."
-	docker build -t $(IMAGE_NAME):latest .
+	docker tag $(IMAGE_NAME):${IMAGE_VERSION} ${IMAGE_NAME}:latest 
 	-(docker images -q -f dangling=true | xargs docker rmi)

@@ -16,7 +16,8 @@ def rxte_lc( obsid=None, ao=None , chmin=None, chmax=None, cleanup=True, rootdir
     if rootdir is None:
         rootdir="/home/idies/workspace/headata/FTP"
     if modelfile is None:
-        modelfile='/home/idies/workspace/Storage/tjaffe/heasoft_folders/pca_bkgd_cmvle_eMv20111129.mdl.gz'
+        #modelfile='/home/idies/workspace/Storage/tjaffe/heasoft_folders/pca_bkgd_cmvle_eMv20111129.mdl.gz'
+        modelfile='CALDB'
 
     rxtedata="rxte/data/archive"
     obsdir="{}/{}/AO{}/P{}/{}/".format(
@@ -94,7 +95,7 @@ if __name__ == "__main__":
         #l=rxte_lc(ao='8', obsid='80001-01-01-10', chmin=5,chmax=10,rootdir='/FTP',modelfile='/FTP/caldb/data/xte/pca/cpf/bgnd/pca_bkgd_cmvle_eMv20111129.mdl.gz')
         l=rxte_lc(ao='8', obsid='80001-01-01-10', chmin=5,chmax=10,rootdir='data/FTP',modelfile='data/FTP/caldb/data/xte/pca/cpf/bgnd/pca_bkgd_cmvle_eMv20111129.mdl.gz')
         #l=rxte_lc(ao='8', obsid='80001-01-01-10', chmin=5,chmax=10,rootdir='/FTP')
-        print("Good")
+        print(f"Good;  have a lc with length {len(l)}.")
     except Exception as e:
         print("ERROR:  {}".format(e))
 

@@ -1,4 +1,4 @@
-FROM sciserver_heasoft:v6.29
+FROM sciserver_xmmsas:v6.29.4.13.2.0.8.19.1.0
 
 ARG heasoft_version=6.29
 ARG sciserver_group=idies
@@ -23,16 +23,16 @@ RUN conda init bash
 # Create Python 3.8 environment
 RUN /bin/bash -c "conda init bash"
 RUN /bin/bash -c "conda create --name python3.8 python=3.8 "
-RUN /bin/bash -c "conda activate python3.8 ;  pip install ipykernel "
+RUN /bin/bash -c "conda activate python3.8 ;  pip install --no-cache ipykernel "
 ## Add to kernels available through Jupyter
 
 RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --user --name=python3.8 --display-name='Python 3.8 (Heasarc)' "
 
-RUN /bin/bash -c "conda activate python3.8 ; pip install jupyter --upgrade" 
-RUN /bin/bash -c "conda activate python3.8 ; pip install jupyterlab --upgrade"
+RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache jupyter --upgrade" 
+RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache jupyterlab --upgrade"
 ## Install python libraries
 ADD requirements.txt requirements.txt
-RUN pip install -r requirements.txt --upgrade && rm requirements.txt
+RUN pip install --no-cache -r requirements.txt --upgrade && rm requirements.txt
 
 COPY jupyter_notebook_config.py /home/idies/.jupyter/jupyter_notebook_config.py
 
@@ -76,3 +76,4 @@ RUN chgrp idies /usr/local/bin/*
 RUN chgrp idies /home/idies/.jupyter/jupyter_notebook_config.py && chmod g+rw /home/idies/.jupyter/jupyter_notebook_config.py
 
 USER idies
+

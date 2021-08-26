@@ -16,6 +16,8 @@ for uv in /home/idies/workspace/{Storage,Temporary}/*/*; do
 done
 echo "$(date) - completed scanning for conda environments. Starting Jupyter server"
 
+##  Make environment set up for user available in JupyterLab
+. ~/.bashrc   
 
 
 exec env \

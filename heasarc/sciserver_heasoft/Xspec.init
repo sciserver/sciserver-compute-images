@@ -1,4 +1,4 @@
-# 121000
+# 121100
 #  XSPEC Initial settings file. 03/2011
 #  Valid setting lines consist of two strings  in the format Key: Value
 #  leading and trailing blanks are ignored for the key, leading blanks/tabs ignored for
@@ -42,8 +42,7 @@
    # Recommended command for Mac html
    # HTML_COMMAND:   open
    
-   # HTML_COMMAND:   /bin/cat
-   HTML_COMMAND:   /usr/local/bin/lynx_dump
+   HTML_COMMAND:   firefox 
 
 #################################################
 
@@ -97,10 +96,16 @@ ABUND: angr
 METHOD: leven
 
 #
-#  fit statistic to be minimized (chi | cstat)
+#  fit statistic to be minimized (chi | cstat ...)
 #
 
 STATISTIC: chi
+
+#
+#  test statistic (chi | pchi ...)
+#
+
+TESTSTAT: chi
 
 #
 #  weighting technique (standard | gehrels | churazov | model ) 
@@ -109,12 +114,14 @@ STATISTIC: chi
 WEIGHT: standard
 
 #
-# If true, fitting algorithm will calculate parameter derivatives
-# numerically.  If false, a faster analytic expression will be used,
-# if applicable to the current fitting statistic.
+# If true, the levenberg-marquardt fitting algorithm will use the chain rule
+# when calculating the parameter derivatives and will ignore terms involving
+# second derivatives of the model in terms of the parameters. If false, the
+# algorithm uses a slower method directly calculating the first and second 
+# derivatives of the statistic with respect to the parameters.
 #
 
-USE_NUMERICAL_DIFFERENTIATION: false 
+USE_CHAIN_RULE: true 
 
 #
 #  cosmology parameters ( H0, q0, lambda0 )

@@ -2,7 +2,6 @@ FROM sciserver_heasoft:v6.29
 
 ARG heasoft_version=6.29
 ARG ciao_version=4.13
-ARG ciao_dir=/opt/ciao
 ARG sciserver_user=idies
 #ARG caldb_root=/FTP/caldb
 ARG caldb_root=/home/idies/workspace/headata/FTP/caldb
@@ -26,29 +25,12 @@ RUN apt-get update \
 USER ${sciserver_user}
 RUN conda update -n base conda
 
-# Create directory
-USER root
-RUN mkdir -p ${ciao_dir} && chown -R idies:idies ${ciao_dir}
-## To install with conda, have to do it as the idies user
-##   otherwise it'll write root-owned files in the miniconda 
-##   area and make it impossible to add more things.
-USER ${sciserver_user}
-
 ENV CIAO_VERSION=${ciao_version}
-ENV CIAO_INSTALL_DIR=${ciao_dir}
 
-# Install CIAO
-##  Sometimes these fail fetching from CXC, so separate RUNs 
-##  not to have to redo all
-RUN conda create -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao ciao && conda clean -y --all
-RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao sherpa && conda clean -y --all
-RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao ciao-contrib && conda clean -y --all
-RUN echo foo
-RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao caldb_main&& conda clean -y --all
-RUN conda install -y -p ${ciao_dir} -c https://cxc.cfa.harvard.edu/conda/ciao marx && conda clean -y --all
+RUN conda create -y -p /opt/ciao -c https://cxc.cfa.harvard.edu/conda/ciao \
+    ciao sherpa ciao-contrib caldb_main marx && conda clean -y --all
 
 
-USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}
 
 #  Init's the .bashrc

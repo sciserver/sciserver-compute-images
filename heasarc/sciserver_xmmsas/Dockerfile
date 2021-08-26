@@ -35,9 +35,9 @@ RUN tar zxf sas_19.1.0-Ubuntu18.04.tgz && rm sas_19.1.0-Ubuntu18.04.tgz
 # Install Xmmsas
 # To get the conda activate to work, has to be the same shell session
 #  so call it this way:
-RUN /bin/bash -c ". /home/idies/miniconda3/etc/profile.d/conda.sh ; conda activate ${xmmsas_dir};  ./install.sh"
-
-RUN mv xmmsas_20210317_1624/* . && rmdir xmmsas_20210317_1624
+RUN /bin/bash -c ". /home/idies/miniconda3/etc/profile.d/conda.sh ; conda activate ${xmmsas_dir};  ./install.sh"  \
+    && mv xmmsas_20210317_1624/* . \
+    && rmdir xmmsas_20210317_1624
 
 ENV SAS_PATH=${xmmsas_dir}
 

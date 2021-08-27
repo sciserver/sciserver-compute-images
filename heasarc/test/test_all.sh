@@ -7,8 +7,8 @@
 #  $  sh test_all.sh
 set -e
 
-xte=false
-chandra=false
+xte=true
+chandra=true
 fermi=true
 xmm=true
 
@@ -120,7 +120,7 @@ echo ""
 echo "#############  Fermitools quick test #########"
 echo "  (switching to fermitools environment) "
 
-conda activate /opt/fermitools
+conda activate /opt/fermi
 if [ ! -d out_fermi ] ; then
     mkdir -p out_fermi
 else

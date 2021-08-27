@@ -2,6 +2,7 @@ FROM sciserver_heasoft:v6.29
 
 ARG heasoft_version=6.29
 ARG ciao_version=4.13
+ARG ciao_dir=/opt/ciao
 ARG sciserver_user=idies
 #ARG caldb_root=/FTP/caldb
 ARG caldb_root=/home/idies/workspace/headata/FTP/caldb
@@ -21,6 +22,9 @@ RUN apt-get update \
 	libssl1.0.0 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# Create directory
+RUN mkdir -p ${ciao_dir} && chown -R idies:idies ${ciao_dir}
 
 USER ${sciserver_user}
 RUN conda update -n base conda

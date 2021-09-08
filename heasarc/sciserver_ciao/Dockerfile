@@ -31,8 +31,12 @@ RUN conda update -n base conda
 
 ENV CIAO_VERSION=${ciao_version}
 
-RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao \
-    ciao sherpa ciao-contrib caldb_main marx && conda clean -y --all
+RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao ciao 
+RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao sherpa 
+RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao ciao-contrib 
+RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao caldb_main 
+RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao marx 
+RUN conda clean -y --all
 
 
 WORKDIR /home/${sciserver_user}

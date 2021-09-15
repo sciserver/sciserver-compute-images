@@ -28,9 +28,7 @@ RUN tar zxf sas_19.1.0-Ubuntu18.04.tgz && rm sas_19.1.0-Ubuntu18.04.tgz
 
 ENV SAS_PERL=/usr/bin/perl
 # Install Xmmsas
-RUN ./install.sh  \
-    && mv xmmsas_20210317_1624/* . \
-    && rmdir xmmsas_20210317_1624
+RUN ./install.sh 
 
 ENV SAS_PATH=${xmmsas_dir}
 

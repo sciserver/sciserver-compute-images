@@ -120,14 +120,21 @@ echo ""
 echo "#############  Fermitools quick test #########"
 echo "  (switching to fermitools environment) "
 
-conda activate /opt/fermi
+conda activate fermi
 if [ ! -d out_fermi ] ; then
     mkdir -p out_fermi
 else
     rm -rf out_fermi/*
 fi
 
-if gtselect evclass=128 evtype=3 infile=data/L1504211512544B65347F11_PH00.fits outfile=out_fermi/cena_filtered.fits ra=201.47 dec=-42.97 rad=10 tmin=239557420 tmax=265507200 emin=300 emax=300000 zmax=90 >& out_fermi/gtselect.log ; then 
+if [[ ! -e "data" ]] ; then
+    mkdir data
+    cd data
+    wget https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/data/dataPreparation/L1506091032539665347F73_PH00.fits
+    cd ..
+fi
+    
+if gtselect evclass=128 evtype=3 infile=data/L1506091032539665347F73_PH00.fits outfile=out_fermi/cena_filtered.fits ra=201.47 dec=-42.97 rad=10 tmin=239557420 tmax=265507200 emin=300 emax=300000 zmax=90 >& out_fermi/gtselect.log ; then 
     echo "###  Fermitools 1 looks OK"
 else
     echo "###  ERROR:  Fermitools test 1 failed."
@@ -155,7 +162,11 @@ echo ""
 echo "#############  XMM SAS stuff #########"
 echo "              (under development) "
 
-conda activate /opt/xmmsas
+
+echo "###  running SAS setup"
+export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf
+source /opt/xmmsas/setsas.sh
+
 
 echo "###  which python"
 which python
@@ -167,16 +178,14 @@ echo "###  PYTHONPATH is"
 echo $PYTHONPATH
 echo ""
 
-echo "  xmmsasversion says"
-#xmmsasversion
-echo ""
-
-if [ ! -d xmm_out ] ; then
-    mkdir -p xmm_out
-    (cd xmm_out/; ln -s ~/workspace/Temporary/tjaffe/scratch/0123700101 )
+if [ ! -d out_xmm ] ; then
+    mkdir -p out_xmm
+    (cd out_xmm/; ln -s ~/workspace/Temporary/tjaffe/scratch/0123700101 )
+else
+    rm -rf out_xmm/0123700101/reproc
 fi
 
-if sh test_xmm.sh > xmm_out/test_xmm.log ; then
+if sh test_xmm.sh > out_xmm/test_xmm.log ; then
     echo "### XMM looks OK"
 else
     echo "### ERROR:  XMM test failed."

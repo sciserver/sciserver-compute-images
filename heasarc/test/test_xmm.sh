@@ -12,9 +12,12 @@ obsid='0123700101'
 
 #cp -pr  sciserver-docker/test/data/FTP/xmm/data/rev0/${obsid} sciserver-docker/test/xmm_out/.
 
-cd xmm_out/${obsid}/
+cd out_xmm/${obsid}/
 
 echo $PWD
+if [ -d reproc ] ; then
+    rm -rf reproc
+fi
 mkdir reproc
 cd ODF
 #gunzip *.gz

@@ -37,16 +37,12 @@ WORKDIR /home/${sciserver_user}
 
 # Configure shells...
 RUN /bin/echo >> ${HOME}/.bashrc \
- && /bin/echo '# Initialize XMMSAS environment' >> ${HOME}/.bashrc \
- && /bin/echo 'export SAS_PATH=/opt/xmmsas' >> ${HOME}/.bashrc \
- && /bin/echo 'export SAS_DIR=/opt/xmmsas' >> ${HOME}/.bashrc \
+ && /bin/echo '# For XMMSAS environment' >> ${HOME}/.bashrc \
+ && /bin/echo 'export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf' >> ${HOME}/.bashrc \
  && /bin/echo >> ${HOME}/.profile \
- && /bin/echo '# Initialize XMMSAS environment' >> ${HOME}/.profile \
- && /bin/echo 'export SAS_PATH=/opt/xmmsas' >> ${HOME}/.profile \
- && /bin/echo 'export SAS_DIR=/opt/xmmsas' >> ${HOME}/.profile \
+ && /bin/echo '# For XMMSAS environment' >> ${HOME}/.profile \
+ && /bin/echo 'export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf' >> ${HOME}/.profile \
  && /bin/echo >> ${HOME}/.cshrc \
- && /bin/echo '# Initialize XMMSAS environment' >> ${HOME}/.cshrc \
- && /bin/echo 'setenv SAS_PATH /opt/xmmsas' >> ${HOME}/.cshrc \
- && /bin/echo 'setenv SAS_DIR /opt/xmmsas' >> ${HOME}/.cshrc 
-
+ && /bin/echo '# For XMMSAS environment' >> ${HOME}/.cshrc \
+ && /bin/echo 'export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf' >> ${HOME}/.cshrc 
 

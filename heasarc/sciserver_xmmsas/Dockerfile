@@ -29,6 +29,9 @@ RUN tar zxf sas_19.1.0-Ubuntu18.04.tgz && rm sas_19.1.0-Ubuntu18.04.tgz
 ENV SAS_PERL=/usr/bin/perl
 # Install Xmmsas
 RUN ./install.sh 
+#  Create links from /opt/xmmsas/ to versioned dir 
+RUN /bin/bash -c 'cd /opt/xmmsas/; for loop in xmmsas_*/*; do ln -sfn $loop; done'
+#  Note:  python libraries installed in final image step.
 
 ENV SAS_PATH=${xmmsas_dir}
 

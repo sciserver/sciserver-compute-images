@@ -1,6 +1,7 @@
 FROM sciserver_xmmsas:v6.29.4.13.2.0.8.19.1.0
 
 ARG heasoft_version=6.29
+ARG xmmsas_version=19.1.0
 ARG sciserver_group=idies
 ARG sciserver_user=idies
 ARG heasarc_data_archive=/FTP
@@ -30,9 +31,12 @@ RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --user
 
 RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache jupyter --upgrade" 
 RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache jupyterlab --upgrade"
+
 ## Install python libraries
 ADD requirements.txt requirements.txt
-RUN pip install --no-cache -r requirements.txt --upgrade && rm requirements.txt
+RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache -r requirements.txt --upgrade && rm requirements.txt"
+RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache -r /opt/xmmsas/sas_${xmmsas_version}_python_packages.txt --upgrade "
+
 
 COPY jupyter_notebook_config.py /home/idies/.jupyter/jupyter_notebook_config.py
 

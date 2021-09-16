@@ -32,11 +32,14 @@ RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --user
 RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache jupyter --upgrade" 
 RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache jupyterlab --upgrade"
 
-## Install python libraries
+## Install python libraries. 
 ADD requirements.txt requirements.txt
-RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache -r requirements.txt --upgrade && rm requirements.txt"
-RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache -r /opt/xmmsas/sas_${xmmsas_version}_python_packages.txt --upgrade "
+RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache -r requirements.txt --upgrade && rm requirements.txt "
 
+RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache -r /opt/xmmsas/sas_${xmmsas_version}_python_packages.txt --upgrade"
+
+## For WWT
+RUN  /bin/bash -c "conda install -c conda-forge nodejs;  jupyter labextension install @wwtelescope/jupyterlab"
 
 COPY jupyter_notebook_config.py /home/idies/.jupyter/jupyter_notebook_config.py
 

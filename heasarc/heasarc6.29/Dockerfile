@@ -23,11 +23,15 @@ RUN conda init bash
 
 # Create Python 3.8 environment
 RUN /bin/bash -c "conda init bash"
-RUN /bin/bash -c "conda create --name python3.8 python=3.8 "
-RUN /bin/bash -c "conda activate python3.8 ;  pip install --no-cache ipykernel "
-## Add to kernels available through Jupyter
+RUN /bin/bash -c "conda create --name heasarc python=3.8 "
+RUN /bin/bash -c "conda activate heasarc ;  pip install --no-cache ipykernel "
 
-RUN /bin/bash -c "conda activate python3.8 ;  python -m ipykernel install --user --name=python3.8 --display-name='Python 3.8 (Heasarc)' "
+## Add to kernels available through Jupyter
+##  (Need to use ipykernel installed in heasarc env even when using it
+##  to add ciao and fermi kernels.)
+RUN /bin/bash -c "conda activate heasarc ;  python -m ipykernel install --user --name=heasarc --display-name='(Heasarc)' "
+RUN /bin/bash -c "conda activate heasarc ;  python -m ipykernel install --user --name=ciao --display-name='(Ciao)' "
+RUN /bin/bash -c "conda activate heasarc ;  python -m ipykernel install --user --name=fermi --display-name='(Fermi)' "
 
 RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache jupyter --upgrade" 
 RUN /bin/bash -c "conda activate python3.8 ; pip install --no-cache jupyterlab --upgrade"

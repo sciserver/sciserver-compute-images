@@ -34,11 +34,11 @@ RUN conda install -c conda-forge nodejs=16;  jupyter labextension install @wwtel
 
 ## Add to kernels available through Jupyter
 SHELL ["conda", "run", "-n", "heasarc", "/bin/bash", "-c"]
-RUN pip install ipykernel ;  python -m ipykernel install --user --name=${defaultenv} --display-name='(Heasarc)'
+RUN pip install ipykernel &&  python -m ipykernel install --user --name=${defaultenv} --display-name='(Heasarc)'
 SHELL ["conda", "run", "-n", "ciao", "/bin/bash", "-c"]
-RUN pip install ipykernel ;  python -m ipykernel install --user --name=ciao --display-name='(Ciao)' 
+RUN pip install ipykernel &&  python -m ipykernel install --user --name=ciao --display-name='(Ciao)' 
 SHELL ["conda", "run", "-n", "fermi", "/bin/bash", "-c"]
-RUN pip install ipykernel ;  python -m ipykernel install --user --name=fermi --display-name='(Fermi)' 
+RUN pip install ipykernel &&  python -m ipykernel install --user --name=fermi --display-name='(Fermi)' 
 
 ## Install python libraries. 
 ADD requirements.txt requirements.txt

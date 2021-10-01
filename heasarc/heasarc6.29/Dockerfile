@@ -22,25 +22,29 @@ ENV USER=${sciserver_user} \
 RUN conda init bash
 
 # Create Python 3.8 environment called Heasarc:
-RUN /bin/bash -c "conda init bash"
-RUN /bin/bash -c "conda create --name ${defaultenv} python=3.8 "
-RUN /bin/bash -c "conda activate ${defaultenv} ;  pip install --no-cache ipykernel ;   python -m ipykernel install --user --name=${defaultenv} --display-name='(Heasarc)'"
+RUN conda update -n base conda
+RUN conda create --name ${defaultenv} python=3.8
+SHELL ["conda", "run", "-n", "heasarc", "/bin/bash", "-c"]
+
+RUN pip install --no-cache jupyter --upgrade
+RUN pip install --no-cache jupyterlab --upgrade
+
+## For WWT
+RUN conda install -c conda-forge nodejs=16;  jupyter labextension install @wwtelescope/jupyterlab
 
 ## Add to kernels available through Jupyter
-RUN /bin/bash -c "conda activate ciao ;  pip install --no-cache ipykernel ;  python -m ipykernel install --user --name=ciao --display-name='(Ciao)' "
-RUN /bin/bash -c "conda activate fermi ;  pip install --no-cache ipykernel ;  python -m ipykernel install --user --name=fermi --display-name='(Fermi)' "
-
-RUN /bin/bash -c "conda activate ${defaultenv} ; pip install --no-cache jupyter --upgrade" 
-RUN /bin/bash -c "conda activate ${defaultenv} ; pip install --no-cache jupyterlab --upgrade"
+SHELL ["conda", "run", "-n", "heasarc", "/bin/bash", "-c"]
+RUN pip install ipykernel ;  python -m ipykernel install --user --name=${defaultenv} --display-name='(Heasarc)'
+SHELL ["conda", "run", "-n", "ciao", "/bin/bash", "-c"]
+RUN pip install ipykernel ;  python -m ipykernel install --user --name=ciao --display-name='(Ciao)' 
+SHELL ["conda", "run", "-n", "fermi", "/bin/bash", "-c"]
+RUN pip install ipykernel ;  python -m ipykernel install --user --name=fermi --display-name='(Fermi)' 
 
 ## Install python libraries. 
 ADD requirements.txt requirements.txt
-RUN /bin/bash -c "conda activate ${defaultenv} ; pip install --no-cache -r requirements.txt --upgrade && rm requirements.txt "
-
-RUN /bin/bash -c "conda activate ${defaultenv} ; pip install --no-cache -r /opt/xmmsas/sas_${xmmsas_version}_python_packages.txt --upgrade"
-
-## For WWT
-RUN  /bin/bash -c "conda install -c conda-forge nodejs;  jupyter labextension install @wwtelescope/jupyterlab"
+SHELL ["conda", "run", "-n", "heasarc", "/bin/bash", "-c"]
+RUN pip install --no-cache -r requirements.txt --upgrade && rm requirements.txt 
+RUN pip install --no-cache -r /opt/xmmsas/sas_${xmmsas_version}_python_packages.txt --upgrade
 
 COPY jupyter_notebook_config.py /home/idies/.jupyter/jupyter_notebook_config.py
 
@@ -67,7 +71,7 @@ COPY lynx_dump /usr/local/bin/
 COPY pdump /usr/local/bin/
 COPY sciversions /usr/local/bin/
 
-COPY startup.sh /opt/startup.sh
+COPY startup.sh /opt/startup.sh 
 RUN chmod +rx /opt/startup.sh
 
 # create symlink for Hesarc data volume

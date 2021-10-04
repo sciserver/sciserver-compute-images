@@ -1,7 +1,8 @@
 FROM sciserver-base-texlive
 
-RUN yum config-manager --set-enabled PowerTools
-RUN yum -y install epel-release \
+RUN yum config-manager --set-enabled PowerTools \
+	&& yum -y groupinstall "Development Tools" \
+	&& yum -y install epel-release \
 	&& yum -y install \
 		zlib-devel \
 		readline-devel \
@@ -17,6 +18,18 @@ RUN yum -y install epel-release \
 		libXt-devel \
 		texinfo \
 		pandoc \
+		udunits2-devel \
+		htop \
+		gcc-gfortran \
+		nginx \
+		libxml2-devel \
+		compat-openssl10 \
+		ImageMagick-c++-devel \
+		gmp-devel \
+		poppler-cpp-devel \
+		tesseract-devel \
+		leptonica-devel \
+		sqlite-devel \
 	&& wget -nv https://download2.rstudio.org/server/centos7/x86_64/rstudio-server-rhel-2021.09.0%2B351-x86_64.rpm \
 	&& yum install -y rstudio-server-rhel-*.rpm \
 	&& rm rstudio-server-rhel-*.rpm \
@@ -24,11 +37,6 @@ RUN yum -y install epel-release \
 	&& rm -rf /var/cache/yum
 
 ENV PATH /home/idies/R/bin:$PATH
-
-RUN yum -y groupinstall "Development Tools" \
-	&& yum -y install gcc-gfortran \
-	&& yum clean all \
-	&& rm -rf /var/cache/yum
 
 USER idies
 
@@ -44,28 +52,20 @@ RUN cd ~ \
 	&& cd .. \
 	&& rm -rf R.tar.gz R-$R_VERSION
 
-RUN Rscript -e "install.packages(c('Cairo'), repos='https://cloud.r-project.org/')"
-
-RUN /bin/bash -c $'printf "options(bitmapType=\'cairo\')\n" >> ~/.Rprofile'
-
-RUN mkdir -p ~/.rstudio/monitored/user-settings \
-	&& echo 'initialWorkingDirectory=~/workspace' > ~/.rstudio/monitored/user-settings/user-settings
-
-USER root
-
-RUN yum -y install nginx
-
+RUN mkdir -p /home/idies/.config/rstudio
+COPY rserver.conf /etc/rstudio/rserver.conf
+COPY --chown=idies rstudio-prefs.json /home/idies/.config/rstudio/rstudio-prefs.json
 COPY --chown=idies Rprofile /home/idies/.Rprofile
+RUN echo "options(Ncpus=$(nproc))" >> /home/idies/.Rprofile
 
+RUN Rscript -e "install.packages(c('Cairo', 'tidyverse'))"
 
-## Added for compatibility with SciServer
-
-RUN yum -y install libxml2-devel
-USER idies
 WORKDIR /home/idies
-RUN wget https://cran.r-project.org/src/contrib/Archive/curl/curl_4.0.tar.gz \
-	&& R CMD INSTALL curl_4.0.tar.gz \
+
+RUN wget https://cran.r-project.org/src/contrib/Archive/curl/curl_4.3.1.tar.gz \
+	&& R CMD INSTALL curl_4.3.1.tar.gz \
 	&& Rscript -e "install.packages(c('httr', 'bit64', 'jpeg', 'jsonlite', 'pbdZMQ', 'repr', 'devtools', 'data.table'))"
+
 RUN git clone https://github.com/sciserver/SciScript-R.git \
 	&& touch /home/idies/keystone.token \
 	&& (cd /home/idies/SciScript-R \
@@ -75,22 +75,23 @@ RUN git clone https://github.com/sciserver/SciScript-R.git \
 		&& R CMD INSTALL SciServer*.tar.gz) \
 	&& rm -rf /home/idies/SciServer*.tar.gz \
 	&& rm /home/idies/keystone.token
-USER root
 
-RUN yum -y install compat-openssl10 \
-	&& yum clean all \
-	&& rm -rf /var/cache/yum
+RUN curl -L https://repo.anaconda.com/miniconda/Miniconda3-py38_4.9.2-Linux-x86_64.sh -o miniconda.sh \
+        && bash miniconda.sh -b \
+        && rm -f miniconda.sh
+
+ENV PATH /home/idies/miniconda3/bin:$PATH
+
+RUN conda update -y conda \
+        && conda update -y --all \
+        && conda clean -y --all
+
+USER root
 
 EXPOSE 8888
 
-COPY rserver.conf /etc/rstudio/rserver.conf
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY entrypoint.sh /opt/startup.sh
 
 RUN chmod 777 /var/run/rstudio-server && chmod +t /var/run/rstudio-server
 RUN chmod 777 /var/lib/rstudio-server && chmod +t /var/lib/rstudio-server
-
-USER idies
-RUN mkdir -p /home/idies/.config/rstudio
-COPY --chown=idies rstudio-prefs.json /home/idies/.config/rstudio/rstudio-prefs.json
-USER root

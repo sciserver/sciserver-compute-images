@@ -18,7 +18,7 @@ IMAGE_NAME = sciserver_xmmsas
 IMAGE_VERSION = 6.29.4.13.2.0.8.19.1.0
 IMAGE_LABEL = v$(IMAGE_VERSION)
 
-image: $(PREREQS)
+image:
 	@echo "Building Docker image ${IMAGE_NAME}:${IMAGE_LABEL}..."
 	docker build --network=host -t $(IMAGE_NAME):$(IMAGE_LABEL) .
 	-(docker images -q -f dangling=true | xargs --no-run-if-empty docker rmi)

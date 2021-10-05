@@ -18,7 +18,7 @@ IMAGE_NAME = heasarc
 IMAGE_VERSION = 6.29
 IMAGE_LABEL = v$(IMAGE_VERSION)
 
-image: $(PREREQS)
+image:
 	@echo "Building Docker image ${IMAGE_NAME}:${IMAGE_LABEL}..."
 	#docker build --no-cache --network=host -t $(IMAGE_NAME):$(IMAGE_LABEL) .
 	docker build --progress=plain --network=host -t $(IMAGE_NAME):$(IMAGE_LABEL) .

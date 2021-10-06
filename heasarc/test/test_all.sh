@@ -3,12 +3,11 @@
 # Test this with 
 #  > docker run --rm -it -v ${PWD}:/home/idies/test -v ${PWD}/data/FTP/:/FTP -h sciuser <imagename> tcsh
 #  #  cd test
-#  #  conda init python3.8
 #  $  sh test_all.sh
 set -e
 
 xte=true
-chandra=true
+ciao=true
 fermi=true
 xmm=true
 
@@ -82,7 +81,7 @@ echo "#############  CIAO stuff #########"
 echo ""
 echo "        ( Changing to CIAO env ) "
 echo ""
-conda activate /opt/ciao
+conda activate ciao
 
 #. /opt/ciao/bin/ciao.bash -o
 
@@ -101,8 +100,11 @@ if [ ! -d out_chandra ] ; then
 else
     rm -rf out_chandra/*
 fi
+if [ ! -d out_chandra/9805 ] ; then
+	cp -pr data/FTP/chandra/data/byobsid/5/9805 out_chandra
+fi
 echo "###   running chandra_repro on a test observation "
-if chandra_repro data/FTP/chandra/data/byobsid/5/9805 out_chandra > out_chandra/test_chandra_repro.log  ; then
+if chandra_repro out_chandra/9805 out_chandra/9805.repro > out_chandra/test_chandra_repro.log  ; then
     echo "### Chandra looks OK"
 else
     echo "### ERROR:  Chandra test failed."

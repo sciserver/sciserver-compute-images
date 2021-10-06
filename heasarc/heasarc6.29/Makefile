@@ -24,8 +24,7 @@ image:
 image: $(PREREQS)
 >>>>>>> heasarc_fixes
 	@echo "Building Docker image ${IMAGE_NAME}:${IMAGE_LABEL}..."
-	#docker build --no-cache --network=host -t $(IMAGE_NAME):$(IMAGE_LABEL) .
-	docker build --progress=plain --network=host -t $(IMAGE_NAME):$(IMAGE_LABEL) .
+	docker build --no-cache --network=host -t $(IMAGE_NAME):$(IMAGE_LABEL) .
 	-(docker images -q -f dangling=true | xargs docker rmi)
 
 latest: image

@@ -22,11 +22,7 @@ ENV USER=${sciserver_user} \
 RUN conda init bash
 
 # Create Python 3.8 environment called Heasarc:
-<<<<<<< HEAD
-RUN conda update -n base conda
-=======
 RUN mamba update -n base conda
->>>>>>> heasarc_fixes
 RUN conda create --name ${defaultenv} python=3.8
 SHELL ["conda", "run", "-n", "heasarc", "/bin/bash", "-c"]
 
@@ -38,12 +34,7 @@ RUN conda install -c conda-forge nodejs=16;  jupyter labextension install @wwtel
 
 ## Add to kernels available through Jupyter
 SHELL ["conda", "run", "-n", "heasarc", "/bin/bash", "-c"]
-<<<<<<< HEAD
-RUN pip install ipykernel &&  python -m ipykernel install --user --name=${defaultenv} --display-name='(Heasarc)'
-SHELL ["conda", "run", "-n", "ciao", "/bin/bash", "-c"]
-RUN pip install ipykernel &&  python -m ipykernel install --user --name=ciao --display-name='(Ciao)' 
-SHELL ["conda", "run", "-n", "fermi", "/bin/bash", "-c"]
-=======
+
 #RUN which pip && which python
 RUN pip install ipykernel &&  python -m ipykernel install --user --name=${defaultenv} --display-name='(Heasarc)'
 SHELL ["conda", "run", "-n", "ciao", "/bin/bash", "-c"]
@@ -52,7 +43,6 @@ RUN pip install ipykernel && python -m ipykernel install --user --name=ciao --di
 #RUN more ~/.local/share/jupyter/kernels/ciao/kernel.json
 SHELL ["conda", "run", "-n", "fermi", "/bin/bash", "-c"]
 #RUN which pip && which python
->>>>>>> heasarc_fixes
 RUN pip install ipykernel &&  python -m ipykernel install --user --name=fermi --display-name='(Fermi)' 
 
 ## Install python libraries. 
@@ -104,8 +94,5 @@ RUN chgrp idies /home/idies/.jupyter/jupyter_notebook_config.py && chmod g+rw /h
 
 USER idies
 
-<<<<<<< HEAD
-=======
 RUN jupyter lab build
 
->>>>>>> heasarc_fixes

@@ -23,21 +23,17 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 USER ${sciserver_user}
-RUN conda update -n base conda
-## install mamba to replace conda
-#RUN conda install -y -c conda-forge mamba && conda clean -y --all
-#RUN mamba update -n base mamba && conda clean -y --all
-#RUN mamba update -n base conda && conda clean -y --all
+
+# install mamba to replace conda
+RUN conda install -y -c conda-forge mamba && conda clean -y --all
+RUN mamba update -n base mamba && conda clean -y --all
+RUN mamba update -n base conda && conda clean -y --all
 
 ENV CIAO_VERSION=${ciao_version}
 
-RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao ciao 
-RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao sherpa 
-RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao ciao-contrib 
-RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao caldb_main 
-RUN conda create -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao marx 
-RUN conda clean -y --all
 
+RUN conda create -y -n ciao python=3.7
+RUN mamba install -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao ciao sherpa ciao-contrib caldb_main marx && conda clean -y --all
 
 WORKDIR /home/${sciserver_user}
 

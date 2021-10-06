@@ -22,9 +22,16 @@ RUN mkdir -p ${xmmsas_dir}
 WORKDIR ${xmmsas_dir}
 
 #  wget is way slow!
+<<<<<<< HEAD
 #RUN wget https://heasarc.gsfc.nasa.gov/FTP/xmm/software/sas/19.1.0/Linux/Ubuntu18.04/sas_19.1.0-Ubuntu18.04.tgz 
 COPY sas_19.1.0-Ubuntu18.04.tgz .
 RUN tar zxf sas_19.1.0-Ubuntu18.04.tgz && rm sas_19.1.0-Ubuntu18.04.tgz 
+=======
+#COPY sas_19.1.0-Ubuntu18.04.tgz .
+#RUN tar zxf sas_19.1.0-Ubuntu18.04.tgz && rm sas_19.1.0-Ubuntu18.04.tgz 
+RUN wget https://heasarc.gsfc.nasa.gov/FTP/xmm/software/sas/19.1.0/Linux/Ubuntu18.04/sas_19.1.0-Ubuntu18.04.tgz \
+     && tar zxf sas_19.1.0-Ubuntu18.04.tgz && rm sas_19.1.0-Ubuntu18.04.tgz
+>>>>>>> heasarc_fixes
 
 ENV SAS_PERL=/usr/bin/perl
 # Install Xmmsas
@@ -49,3 +56,7 @@ RUN /bin/echo >> ${HOME}/.bashrc \
  && /bin/echo '# For XMMSAS environment' >> ${HOME}/.cshrc \
  && /bin/echo 'export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf' >> ${HOME}/.cshrc 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> heasarc_fixes

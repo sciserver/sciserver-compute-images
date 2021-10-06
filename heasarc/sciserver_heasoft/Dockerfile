@@ -91,7 +91,7 @@ RUN /bin/echo >> /home/idies/.bashrc \
  && /bin/echo '# Configure PFILES for common environment' >> /home/idies/.bashrc \
  && /bin/echo "export PFILES=\"/home/idies/pfiles;/opt/heasoft/syspfiles:${CIAO_INSTALL_DIR}/contrib/param:${CIAO_INSTALL_DIR}/param\"" >> /home/idies/.bashrc \
  && /bin/echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.bashrc \ 
- && /bin/echo 'export PATH=/home/idies/miniconda3/envs/python3.8/bin:${PATH}' >> /home/idies/.bashrc
+ && /bin/echo 'export PATH=/home/idies/miniconda3/envs/heasarc/bin:${PATH}' >> /home/idies/.bashrc
 
 
 RUN /bin/echo >> /home/idies/.profile \
@@ -110,7 +110,7 @@ RUN /bin/echo >> /home/idies/.profile \
  && /bin/echo '# Configure PFILES for common environment' >> /home/idies/.profile \
  && /bin/echo "export PFILES=\"/home/idies/pfiles;/opt/heasoft/syspfiles:${CIAO_INSTALL_DIR}/contrib/param:${CIAO_INSTALL_DIR}/param\"" >> /home/idies/.profile \
  && /bin/echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.profile \ 
- && /bin/echo 'export PATH=/home/idies/miniconda3/envs/python3.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.profile
+ && /bin/echo 'export PATH=/home/idies/miniconda3/envs/heasarc/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.profile
 
 
 RUN /bin/echo >> /home/idies/.cshrc \
@@ -132,16 +132,17 @@ RUN /bin/echo >> /home/idies/.cshrc \
  && /bin/echo '# Configure PFILES for common environment' >> /home/idies/.cshrc \
  && /bin/echo "setenv PFILES \"/home/idies/pfiles;/opt/heasoft/syspfiles\"" >> /home/idies/.cshrc \
  && /bin/echo 'setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}'  >> /home/idies/.cshrc \ 
- && /bin/echo 'setenv PATH /home/idies/miniconda3/envs/python3.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}'  >> /home/idies/.cshrc
+
+ && /bin/echo 'setenv PATH /home/idies/miniconda3/envs/heasarc/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}'  >> /home/idies/.cshrc
 
 ENV SHELL=/bin/bash
 
-ENV PATH=/home/idies/miniconda3/envs/python3.8/bin:${PATH}:/home/idies/miniconda3/envs/python3.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin 
+ENV PATH=/home/idies/miniconda3/envs/heasarc/bin:${PATH}:/home/idies/miniconda3/envs/heasarc/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin 
 ENV PFILES=/home/${sciserver_user}/pfiles;/opt/heasoft/syspfiles \
     CALDB=${caldb_root} \
     CALDBCONFIG=${caldb_root}/software/tools/caldb.config \
     CALDBALIAS=${caldb_root}/software/tools/alias_config.fits \
-    PATH=/home/idies/miniconda3/envs/python3.8/bin:${PATH} \
+    PATH=/home/idies/miniconda3/envs/heasarc/bin:${PATH} \
     PERL5LIB=/opt/heasoft/lib/perl \
     PYTHONPATH=/opt/heasoft/lib/python:${PYTHONPATH} \
     HEADAS=/opt/heasoft 

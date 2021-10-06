@@ -1,0 +1,187 @@
+# 121100
+#  XSPEC Initial settings file. 03/2011
+#  Valid setting lines consist of two strings  in the format Key: Value
+#  leading and trailing blanks are ignored for the key, leading blanks/tabs ignored for
+#  the value. Invalid settings (no colon) are ignored, keys valid in format but not 
+#  implemented are simply read but not used.
+#
+#
+#       Do not modify above this line
+################################################
+
+#
+#  User default local model directory
+#  example code may be found in the source tree at:
+#  ${PATH_TO_SRC}/src/XSModel/Model/LocalModelTemplate
+
+#LOCAL_MODEL_DIRECTORY:  /path/to/your/local/model/dir
+
+################################################
+#
+#  options and commands for displaying helpfiles
+#
+
+   USE_ONLINE_HELP:   false
+   
+   # Recognized local help formats: html pdf
+   # This is ignored when using online help
+   LOCAL_HELP_FORMAT: html  
+
+   # Recommended command for Adobe Acrobat version 7 and later:
+   PDF_COMMAND:  acroread  -openInNewWindow -tempFileTitle 
+
+   # Recommended command for Adobe Acrobat prior to version 7:
+   # PDF_COMMAND:  acroread  -useFrontEndProgram -tempFileTitle
+
+   # Recommended command for Mac PDF viewing
+   # PDF_COMMAND:  open 
+   
+   # Recommended command for Cygwin PDF viewing
+   # PDF_COMMAND:  xpdf -q   
+
+   # Recommended command for Mac html
+   # HTML_COMMAND:   open
+   
+   HTML_COMMAND:   firefox 
+
+#################################################
+
+#
+#  setting for GUI mode. The code requires that the GUI setting
+#  starts with a 't' (case-insensitive) otherwise GUI mode is false
+#  and the command line mode is used.
+#
+
+GUI:   false
+                
+#                
+#  user-definable setting for the dummy response. Arguments required
+#  begin-range end-range, number of bins, logarithmic/linear. Defaults
+#  are {0.1,100,200,log} respectively. Setting for bin type must be "linear"
+#  if linear bins are to be created.
+#
+
+DUMMY:  0.1   50.  5000  log
+
+
+#
+# Chatter Level: Console chatter level then log chatter level. Currently (4/2001)
+# logging has not been reimplemented. 
+#
+
+CHAT: 10 10
+
+#
+# photo absorption cross section table setting.
+# possible values are vern, bcmc, obmc.
+
+
+XSECT:  vern
+
+
+#
+# solar abundance table indicator. Hard coded solar abundance vector. Choices are 
+#  'feld'  Feldman, U., 1992. Physica Scripta, 46, 202. 
+#  'angr' is from Anders, E. & Grevesse, N., 1989. Geochimica and Cosmochimica Acta 53, 197. 
+#  'aneb' is from Anders, E. & Ebihara, 1982.  Geochimica and Cosmochimica Acta 46, 2363. 
+#   
+
+ABUND: angr
+
+
+#
+# fitting method  (leven | anneal ...)
+#
+
+METHOD: leven
+
+#
+#  fit statistic to be minimized (chi | cstat ...)
+#
+
+STATISTIC: chi
+
+#
+#  test statistic (chi | pchi ...)
+#
+
+TESTSTAT: chi
+
+#
+#  weighting technique (standard | gehrels | churazov | model ) 
+#
+
+WEIGHT: standard
+
+#
+# If true, the levenberg-marquardt fitting algorithm will use the chain rule
+# when calculating the parameter derivatives and will ignore terms involving
+# second derivatives of the model in terms of the parameters. If false, the
+# algorithm uses a slower method directly calculating the first and second 
+# derivatives of the statistic with respect to the parameters.
+#
+
+USE_CHAIN_RULE: true 
+
+#
+#  cosmology parameters ( H0, q0, lambda0 )
+#
+
+COSMO:  70. .0 .73
+#
+#
+#  Default graphics package (PLT is currently the only option).
+#
+
+GRAPH:  plt
+
+#
+#  Default plotting device (e.g. for PGPLOT)
+#
+
+PLOTDEVICE:    /null
+
+#
+# Y-axis plotting units when in setplot wave mode (angstrom, hz)
+#
+
+WAVE_PLOT_UNITS:  hz
+
+#
+#  User scripting directory
+#
+
+USER_SCRIPT_DIRECTORY:  $HOME/.xspec
+
+#
+# Default setting for parameters' fit delta values.
+# Valid options are:
+#
+#     fixed
+#     proportional <fraction of parameter value>
+#
+# If set to 'fixed', the default values come from the settings in the
+# model.dat model definition file. 
+#
+
+FIT_DELTAS:  proportional  .01
+
+#
+# Default setting for the AtomDB version number and NEI version number
+#
+
+ATOMDB_VERSION:  3.0.9
+NEI_VERSION: 3.0.4
+
+#
+# Default setting for the parallel tasks - should be given as a string
+# of pairs of task name and max number of processors to use
+#
+
+# PARALLEL: leven 2 error 2 goodness 2 steppar 2 walkers 2
+
+#
+# Default setting for whether to put a background image on contour plots
+#
+
+CONTOUR_IMAGE: true

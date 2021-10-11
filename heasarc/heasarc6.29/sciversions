@@ -1,0 +1,97 @@
+#!/usr/bin/perl -w
+###############################################################################
+#
+# PROGRAM: sciversions
+#
+#  AUTHOR: Edward J. Sabol <edward.j.sabol@nasa.gov>
+#
+# DESCRIPTION:
+#  Combine the output of fversion, ciaover, and sasversion.
+#
+###############################################################################
+# High Energy Astrophysics Science Archive Research Center (HEASARC),
+# NASA/Goddard Space Flight Center, Greenbelt, MD 20771, USA.
+#
+# You are free to use this code as you wish, but unless you change
+# it significantly, please leave the above name and address intact.
+###############################################################################
+
+use strict;
+
+my @packages = qw(HEASoft CIAO SAS);
+my %command_for = ();
+if (defined($ENV{'HEADAS'})) {
+    $command_for{'HEASoft'} = "$ENV{'HEADAS'}/bin/fversion";
+}
+if (defined($ENV{'ASCDS_BIN'})) {
+    $command_for{'CIAO'} = "$ENV{'ASCDS_BIN'}/ciaover";
+}
+if (defined($ENV{'SAS_PATH'})) {
+    $command_for{'SAS'} = "$ENV{'SAS_PATH'}/bin/sasversion";
+}
+
+my $debug = 0;
+my $output = '';
+eval {
+    foreach my $package (@packages) {
+	my $command = $command_for{$package};
+	$command = '/bin/true' if (!defined($command));
+	if (-x $command) {
+	    print "command = @{[ $command || 'undef' ]}\n" if $debug;
+	    my @command_output = `$command 2>&1`;
+	    chomp @command_output;
+	    print "command_output = ",join("\n",@command_output),"\n" if $debug;
+	    $command_output[0] = '' unless (defined($command_output[0]));
+	    if ($package eq 'HEASoft') {
+		$command_output[0] = 'unknown' unless ($command_output[0]);
+		$output = "$package $command_output[0]; ";
+	    } elsif ($package eq 'CIAO') {
+		my($ciao_version) = grep(/CIAO\s*\d+\.\d+/, @command_output);
+		if (defined($ciao_version)
+		    && ($ciao_version =~ /CIAO\s*([\d\.]+)/)) {
+		    $ciao_version = "$package $1";
+		} else {
+		    $ciao_version = "$package unknown";
+		}
+		my($caldb_version) = grep(/CALDB/, @command_output);
+		$caldb_version = "CALDB unknown" unless (defined($caldb_version));
+		$caldb_version =~ s/\A\s*CALDB\s*:\s*/CALDB /;
+		$output .= "$ciao_version ($caldb_version); ";
+	    } elsif ($package eq 'SAS') {
+		my($sas_version) = grep(/SAS release\s*:\s*xmmsas_/, @command_output);
+		if (defined($sas_version)
+		    && ($sas_version =~ /SAS release\s*:\s*([^-]+)-([\d\.]+)/)) {
+		    $sas_version = "$package $2 ($1)";
+		    $output .= $sas_version;
+		} else {
+		    $sas_version = '';
+		    $output =~ s/;\s*\z//;
+		}
+	    } else {
+		die "Unexpected package $package.\n";
+	    }
+	} else {
+	    $output .= "$package unknown";
+	    $output .= "; " unless ($package eq 'SAS');
+	    next; #if $debug;
+	    die "Version command $command not found for package $package.\n";
+	}
+    }
+
+    die "No version commands found.\n" unless ($output);
+
+    print "$output\n";
+};
+if ($@) {
+    my $error = "$@";
+    chomp $error;
+    print STDERR "Error: $error\n";
+    if (-p STDIN) {
+	while (defined($_ = <STDIN>)) {
+	    # Do nothing. Just read all of standard input to avoid complaints about
+	    # unread data.
+	}
+    }
+    exit -1;
+}
+exit 0;

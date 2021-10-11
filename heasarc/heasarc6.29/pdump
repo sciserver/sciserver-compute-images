@@ -1,0 +1,73 @@
+#!/usr/bin/perl -w
+###############################################################################
+#
+# PROGRAM: pdump.pl
+#
+#  AUTHOR: Edward J. Sabol <edward.j.sabol@nasa.gov>
+#
+# DESCRIPTION:
+#  Dumps the par file that is being used (as determined by paccess).
+#
+###############################################################################
+# High Energy Astrophysics Science Archive Research Center (HEASARC),
+# NASA/Goddard Space Flight Center, Greenbelt, MD 20771, USA.
+#
+# You are free to use this code as you wish, but unless you change
+# it significantly, please leave the above name and address intact.
+###############################################################################
+
+use strict;
+
+eval {
+    my $reset = 0;
+    if (@ARGV && defined($ARGV[0]) && length($ARGV[0])
+	&& ($ARGV[0] eq '--reset')) {
+	$reset = 1;
+	shift(@ARGV);
+    }
+
+    my $tool;
+    if (@ARGV && defined($ARGV[0]) && length($ARGV[0])) {
+	$tool = $ARGV[0];
+	my $regexp_tool = qr/\A([A-Za-z][-A-Za-z0-9_]+(\.[A-Za-z0-9]+)?)\z/m;
+	if ($tool !~ /\.\./ && $tool =~ $regexp_tool) {
+	    $tool = $1;
+	} else {
+	    die "Invalid tool.\n";
+	}
+    } else {
+	die "Tool not specified.\n";
+    }
+
+    if ($reset) {
+	open(my $fh, '-|','punlearn',$tool)
+	  or die "Could not execute punlearn.\n";
+	my $output = do { local($/) = undef; <$fh>; };
+# 	chomp($output) if defined($output);
+# 	print "output = \"$output\"\n";
+    }	
+
+    my $par_file;
+    {
+	open(my $fh, '-|','paccess',$tool,'r')
+	  or die "Could not execute paccess.\n";
+	$par_file = do { local($/) = undef; <$fh>; };
+	chomp($par_file) if defined($par_file);
+# 	print "par_file = @{[ $par_file || '???' ]}\n";
+    }
+    die "Could not locate a par file for the specified tool ($tool).\n"
+      unless (defined($par_file) and -e $par_file and -s _);
+
+    open(my $fh, '<', $par_file)
+      or die "Could not open parameter file ($par_file).\n";
+    while (defined(my $line = <$fh>)) {
+	print $line;
+    }
+};
+if ($@) {
+    my $error = "$@";
+    chomp $error;
+    print STDERR "Error: $error\n";
+    exit -1;
+}
+exit 0;

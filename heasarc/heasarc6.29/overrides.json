@@ -1,0 +1,5 @@
+{
+  "@wwtelescope/jupyterlab:research": {
+    "appUrl": "/wwtstatic/research/"
+  }
+}

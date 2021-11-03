@@ -94,5 +94,11 @@ RUN chgrp idies /home/idies/.jupyter/jupyter_notebook_config.py && chmod g+rw /h
 
 USER idies
 
+# For World Wide Telescope widget
+RUN jupyter labextension install @wwtelescope/jupyterlab
+
+RUN source activate heasarc && pip install --upgrade --no-cache pywwt toasty shapely wwt_kernel_data_relay
+
 RUN jupyter lab build
 
+COPY overrides.json /home/idies/miniconda3/envs/heasarc/share/jupyter/lab/settings/overrides.json

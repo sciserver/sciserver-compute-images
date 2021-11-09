@@ -86,6 +86,8 @@ RUN conda update -y conda \
         && conda update -y --all \
         && conda clean -y --all
 
+RUN Rscript -e "install.packages('plyr')"
+
 USER root
 
 EXPOSE 8888

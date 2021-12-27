@@ -30,9 +30,9 @@ RUN apt-get update \
 	libcurl3 \
 	libssl1.0.0 \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* 
+ && rm -rf /var/lib/apt/lists/*
 #&& update-alternatives --install /usr/bin/python python /usr/bin/python3 10 \
-#&& update-alternatives --install /usr/bin/ipython ipython /usr/bin/ipython3 10 
+#&& update-alternatives --install /usr/bin/ipython ipython /usr/bin/ipython3 10
 
 #RUN conda install python=3.8
 
@@ -50,7 +50,7 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${HEASOFT_V
 
 # Configure, make, and install...
 RUN cd /home/idies/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
-   && ./configure --prefix=/opt/heasoft 2>&1 | tee /home/idies/configure.log 
+   && ./configure --prefix=/opt/heasoft 2>&1 | tee /home/idies/configure.log
 
 RUN cd /home/idies/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
  && make 2>&1 | tee /home/idies/build.log \
@@ -62,8 +62,8 @@ RUN ln -sf /home/idies/workspace/headata/FTP/software/lheasoft/lheasoft${HEASOFT
 
 # Clean up, copy release notes to /opt/heasoft/, and create symlinks....
 RUN gzip -9 /home/idies/*.log && mv /home/idies/*.log.gz /opt/heasoft/.
-RUN cp -p /home/idies/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/ 
-RUN rm -rf /home/idies/heasoft-${HEASOFT_VERSION}* 
+RUN cp -p /home/idies/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/
+RUN rm -rf /home/idies/heasoft-${HEASOFT_VERSION}*
 RUN /bin/bash -c 'cd /opt/heasoft/; for loop in x86_64*/*; do ln -sf $loop; done'
 
 
@@ -74,7 +74,7 @@ COPY Xspec.init /opt/heasoft/spectral/manager/
 
 USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}
- 
+
 RUN mkdir -p /home/idies/pfiles
 
 # Configure shells...
@@ -90,7 +90,7 @@ RUN /bin/echo >> /home/idies/.bashrc \
  && /bin/echo >> /home/idies/.bashrc \
  && /bin/echo '# Configure PFILES for common environment' >> /home/idies/.bashrc \
  && /bin/echo "export PFILES=\"/home/idies/pfiles;/opt/heasoft/syspfiles:${CIAO_INSTALL_DIR}/contrib/param:${CIAO_INSTALL_DIR}/param\"" >> /home/idies/.bashrc \
- && /bin/echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.bashrc \ 
+ && /bin/echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.bashrc \
  && /bin/echo 'export PATH=/home/idies/miniconda3/envs/heasarc/bin:${PATH}' >> /home/idies/.bashrc
 
 
@@ -109,7 +109,7 @@ RUN /bin/echo >> /home/idies/.profile \
  && /bin/echo >> /home/idies/.profile \
  && /bin/echo '# Configure PFILES for common environment' >> /home/idies/.profile \
  && /bin/echo "export PFILES=\"/home/idies/pfiles;/opt/heasoft/syspfiles:${CIAO_INSTALL_DIR}/contrib/param:${CIAO_INSTALL_DIR}/param\"" >> /home/idies/.profile \
- && /bin/echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.profile \ 
+ && /bin/echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.profile \
  && /bin/echo 'export PATH=/home/idies/miniconda3/envs/heasarc/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}' >> /home/idies/.profile
 
 
@@ -118,7 +118,7 @@ RUN /bin/echo >> /home/idies/.cshrc \
  && /bin/echo 'if ( $?tcsh && $?prompt ) alias ls ls-F' >> /home/idies/.cshrc \
  && /bin/echo 'alias ll ls -l' >> /home/idies/.cshrc \
  && /bin/echo 'alias la ls -a' >> /home/idies/.cshrc \
- && /bin/echo 'alias lal ls -al' >> /home/idies/.cshrc \ 
+ && /bin/echo 'alias lal ls -al' >> /home/idies/.cshrc \
  && /bin/echo >> /home/idies/.cshrc \
  && /bin/echo '# Initialize HEASoft environment' >> /home/idies/.cshrc \
  && /bin/echo 'setenv HEADAS /opt/heasoft' >> /home/idies/.cshrc \
@@ -131,13 +131,13 @@ RUN /bin/echo >> /home/idies/.cshrc \
  && /bin/echo >> /home/idies/.cshrc \
  && /bin/echo '# Configure PFILES for common environment' >> /home/idies/.cshrc \
  && /bin/echo "setenv PFILES \"/home/idies/pfiles;/opt/heasoft/syspfiles\"" >> /home/idies/.cshrc \
- && /bin/echo 'setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}'  >> /home/idies/.cshrc \ 
+ && /bin/echo 'setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}'  >> /home/idies/.cshrc \
 
  && /bin/echo 'setenv PATH /home/idies/miniconda3/envs/heasarc/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}'  >> /home/idies/.cshrc
 
 ENV SHELL=/bin/bash
 
-ENV PATH=/home/idies/miniconda3/envs/heasarc/bin:${PATH}:/home/idies/miniconda3/envs/heasarc/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin 
+ENV PATH=/home/idies/miniconda3/envs/heasarc/bin:${PATH}:/home/idies/miniconda3/envs/heasarc/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ENV PFILES=/home/${sciserver_user}/pfiles;/opt/heasoft/syspfiles \
     CALDB=${caldb_root} \
     CALDBCONFIG=${caldb_root}/software/tools/caldb.config \
@@ -145,6 +145,6 @@ ENV PFILES=/home/${sciserver_user}/pfiles;/opt/heasoft/syspfiles \
     PATH=/home/idies/miniconda3/envs/heasarc/bin:${PATH} \
     PERL5LIB=/opt/heasoft/lib/perl \
     PYTHONPATH=/opt/heasoft/lib/python:${PYTHONPATH} \
-    HEADAS=/opt/heasoft 
+    HEADAS=/opt/heasoft
 
 RUN /bin/echo "Done"

@@ -1,8 +1,8 @@
-FROM sciserver_fermi:v6.29.4.13.2.0.8
+FROM sciserver_fermi:v6.29.4.14.2.0.8
 
-ARG version=6.29.4.13.2.0.8.19.1.0
+ARG version=6.29.4.14.2.0.8.19.1.0
 ARG heasoft_version=6.29
-ARG ciao_version=4.13
+ARG ciao_version=4.14
 ARG fermi_version=2.0.8
 ARG xmmsas_version=19.1.0
 ARG xmmsas_dir=/opt/xmmsas
@@ -50,4 +50,3 @@ RUN /bin/echo >> ${HOME}/.bashrc \
  && /bin/echo >> ${HOME}/.cshrc \
  && /bin/echo '# For XMMSAS environment' >> ${HOME}/.cshrc \
  && /bin/echo 'export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf' >> ${HOME}/.cshrc 
-

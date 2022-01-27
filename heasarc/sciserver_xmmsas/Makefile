@@ -15,7 +15,7 @@
 #=============================================================================#
 
 IMAGE_NAME = sciserver_xmmsas
-IMAGE_VERSION = 6.29.4.13.2.0.8.19.1.0
+IMAGE_VERSION = 6.29.4.14.2.0.8.20.0.0
 IMAGE_LABEL = v$(IMAGE_VERSION)
 
 image:
@@ -25,5 +25,5 @@ image:
 
 latest: image
 	@echo "Tagging Docker image ${IMAGE_NAME}:${IMAGE_LABEL} with latest..."
-	docker tag $(IMAGE_NAME):$(IMAGE_LABEL) $(IMAGE_NAME):latest 
+	docker tag $(IMAGE_NAME):$(IMAGE_LABEL) $(IMAGE_NAME):latest
 	-(docker images -q -f dangling=true | xargs --no-run-if-empty docker rmi)

@@ -1,10 +1,10 @@
-FROM sciserver_fermi:v6.29.4.13.2.0.8
+FROM sciserver_fermi:v6.29.4.14.2.0.8
 
-ARG version=6.29.4.13.2.0.8.19.1.0
+ARG version=6.29.4.14.2.0.8.20.0.0
 ARG heasoft_version=6.29
-ARG ciao_version=4.13
+ARG ciao_version=4.14
 ARG fermi_version=2.0.8
-ARG xmmsas_version=19.1.0
+ARG xmmsas_version=20.0.0
 ARG xmmsas_dir=/opt/xmmsas
 ARG sciserver_user=idies
 
@@ -21,14 +21,16 @@ USER root
 RUN mkdir -p ${xmmsas_dir}
 WORKDIR ${xmmsas_dir}
 
-#  wget is way slow!
+ENV SAS_VERSION=${sas_version}
+ENV UBUNTU_VERSION=18.04
 
-#COPY sas_19.1.0-Ubuntu18.04.tgz .
-#RUN tar zxf sas_19.1.0-Ubuntu18.04.tgz && rm sas_19.1.0-Ubuntu18.04.tgz 
-RUN wget https://heasarc.gsfc.nasa.gov/FTP/xmm/software/sas/19.1.0/Linux/Ubuntu18.04/sas_19.1.0-Ubuntu18.04.tgz \
-     && tar zxf sas_19.1.0-Ubuntu18.04.tgz && rm sas_19.1.0-Ubuntu18.04.tgz
+RUN wget https://heasarc.gsfc.nasa.gov/FTP/xmm/software/sas/${SAS_VERSION}/Linux/Ubuntu${UBUNTU_VERSION}/sas_${SAS_VERSION}-Ubuntu${UBUNTU_VERSION}.tgz \
+ && tar xzvf sas_${SAS_VERSION}-Ubuntu${UBUNTU_VERSION}.tgz \
+ && rm -f sas_${SAS_VERSION}-Ubuntu${UBUNTU_VERSION}.tgz
 
 ENV SAS_PERL=/usr/bin/perl
+ENV SAS_PYTHON=/usr/bin/python3
+
 # Install Xmmsas
 RUN ./install.sh 
 #  Create links from /opt/xmmsas/ to versioned dir 
@@ -50,4 +52,3 @@ RUN /bin/echo >> ${HOME}/.bashrc \
  && /bin/echo >> ${HOME}/.cshrc \
  && /bin/echo '# For XMMSAS environment' >> ${HOME}/.cshrc \
  && /bin/echo 'export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf' >> ${HOME}/.cshrc 
-

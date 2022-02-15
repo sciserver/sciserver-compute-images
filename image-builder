@@ -23,9 +23,9 @@ class ImageBuilder:
         self.push = kwargs.get('push', False)
 
     def gitCommand(self, *cmd):
-        cmd = ['git', '-C', self.root] + list(cmd)
+        cmd = ['git'] + list(cmd)
         logging.debug(f'running git command: {cmd}')
-        return subprocess.check_output(cmd).decode('utf-8').strip()
+        return subprocess.check_output(cmd, cwd=self.root).decode('utf-8').strip()
 
     def getBuildInfo(self):
         self.commit_hash = self.gitCommand('log', '-n1', '--format=%h')
@@ -52,7 +52,7 @@ class ImageBuilder:
         self.candidates = candidates
 
     def getFrom(self, cand):
-        with open(os.path.join('science', cand, 'Dockerfile'), 'r') as f:
+        with open(os.path.join(self.root, 'science', cand, 'Dockerfile'), 'r') as f:
             fromline = [i for i in f.readlines() if i.startswith('FROM ')][0]
             fromimage = fromline.split()[-1].strip().split('/')[-1]
             return fromimage
@@ -123,11 +123,11 @@ class ImageBuilder:
 
     def getAllCompat(self):
         self.compat = {}
-        for compat in glob.glob(os.path.join('compat', '*', 'sciserver-image.json')):
+        for compat in glob.glob(os.path.join(self.root, 'compat', '*', 'sciserver-image.json')):
             name = compat.split(os.path.sep)[-2]
             with open(compat, 'r') as f:
                 self.compat[name] = json.load(f)
-            if not os.path.isfile(os.path.join('compat', name, 'Dockerfile')):
+            if not os.path.isfile(os.path.join(self.root, 'compat', name, 'Dockerfile')):
                 raise Exception(f'missing Dockerfile for compat build {name}')
 
     def getCompatUpdates(self):
@@ -283,19 +283,26 @@ class ImageBuilder:
             compat_spec = json.load(f)
 
         logging.info(f'preparing compat build for {build["from"]} using {base_path} in {temp_path}')
-        os.makedirs(temp_path, exist_ok=True)
+        if not self.dryrun:
+            os.makedirs(temp_path, exist_ok=True)
 
         dockerfile = 'FROM ' + build['from'] + '\n'
         for inc in compat_spec.get('includes', []) + [build['compat']]:
             logging.info(f'...including {inc} in compat build')
             with open(os.path.join(self.root, 'compat', inc, 'Dockerfile'), 'r') as f:
                 dockerfile += f.read() + '\n'
-            subprocess.check_output(['rsync', '-a', os.path.join('compat', inc, ''), temp_path])
+            rsync_cmd = ['rsync', '-a', os.path.join(self.root, 'compat', inc, ''), temp_path]
+            if self.dryrun:
+                logging.debug('dryrun -- running command', rsync_cmd)
+            else:
+                logging.debug('running command', rsync_cmd)
+                subprocess.check_output(rsync_cmd)
 
         # add some image info to this build and write out final dockerfile
         dockerfile += f'ENV SCISERVER_IMAGE={build["version"]}\n'
-        with open(os.path.join(temp_path, 'Dockerfile'), 'w') as f:
-            f.write(dockerfile)
+        if not self.dryrun:
+            with open(os.path.join(temp_path, 'Dockerfile'), 'w') as f:
+                f.write(dockerfile)
 
         # breadcrumb trail for compat
         vlabel = f'org.sciserver.compat.version={build["version"]}'

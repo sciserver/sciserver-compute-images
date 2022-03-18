@@ -15,7 +15,7 @@
 #=============================================================================#
 
 IMAGE_NAME = sciserver_xmmsas
-IMAGE_VERSION = 6.29.4.14.2.0.8.19.1.0
+IMAGE_VERSION = 6.29.4.14.2.0.8.20.0.0
 IMAGE_LABEL = v$(IMAGE_VERSION)
 
 image:

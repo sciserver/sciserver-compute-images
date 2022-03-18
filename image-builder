@@ -1,0 +1,340 @@
+#!/usr/bin/env python3
+
+import argparse
+import glob
+import subprocess
+import os
+import json
+import time
+import logging
+import sys
+import re
+
+
+class ImageBuilder:
+    def __init__(self, **kwargs):
+        self.root = kwargs.get('root', os.getcwd())
+        self.repo = kwargs.get('repo', '')
+        self.commit = kwargs.get('ref', 'HEAD^..HEAD')
+        self.ignore = [os.path.abspath(i) for i in kwargs.get('ignore', [])]
+        self.include = [os.path.abspath(i) for i in kwargs.get('include', [])]
+        self.allow_untracked = kwargs.get('untracked', False)
+        self.dryrun = kwargs.get('dryrun', False)
+        self.push = kwargs.get('push', False)
+
+    def gitCommand(self, *cmd):
+        cmd = ['git', '-C', self.root] + list(cmd)
+        logging.debug(f'running git command: {cmd}')
+        return subprocess.check_output(cmd).decode('utf-8').strip()
+
+    def getBuildInfo(self):
+        self.commit_hash = self.gitCommand('log', '-n1', '--format=%h')
+        self.commit_n = self.gitCommand('rev-list', '--count', 'HEAD')
+
+    def getAllCandidates(self):
+        candidates = {}
+        logging.info(f'discovering science images at root {self.root}')
+        for path in glob.glob(os.path.join(self.root, 'science', '*', 'sciserver-image.json')):
+            name = path.split(os.path.sep)[-2]
+            with open(path, 'r') as f:
+                info = json.load(f)
+                info['version'] = str(info.get('version', '1.0'))
+                if not re.fullmatch('[0-9.]*', info['version']):
+                    raise Exception(f'invalid version for {name}: {info["version"]}')
+                info['target'] = info.get('target', name)
+                if not re.fullmatch('[a-zA-Z0-9-_]+', info['target']):
+                    raise Exception(f'invalid target name for {name}: {info["target"]}')
+                if not info['image'] or not re.fullmatch('[a-zA-Z0-9-_]+', info['image']):
+                    raise Exception(f'invalid image name for {name}: {info["image"]}')
+                info['path'] = os.path.join(self.root, 'science', name)
+            candidates[name] = info
+            logging.debug(f'found image {name}: {info}')
+        self.candidates = candidates
+
+    def getFrom(self, cand):
+        with open(os.path.join('science', cand, 'Dockerfile'), 'r') as f:
+            fromline = [i for i in f.readlines() if i.startswith('FROM ')][0]
+            fromimage = fromline.split()[-1].strip().split('/')[-1]
+            return fromimage
+
+    def getImages(self):
+        return set([v['image'] + ':' + str(v['version']) for k, v in self.candidates.items()])
+
+    def getBuildDependencies(self):
+        for i in self.candidates:
+            source = self.getFrom(i)
+            for j in self.candidates:
+                tag = self.candidates[j]['target'] + ':' + str(self.candidates[j]['version'])
+                if tag == source:
+                    self.candidates[i]['dependsOn'] = j
+        for i in self.candidates:
+            dep = self.candidates[i].get('dependsOn')
+            for j in self.candidates:
+                if j == dep:
+                    self.candidates[j]['neededBy'] = self.candidates[j].get('neededBy', []) + [i]
+        # get the final
+        for image in self.getImages():
+            builds = [k for k, v in self.candidates.items() if v['image'] + ':' + str(v['version']) == image]
+            for build in builds:
+                if sum([1 for j in builds if self.candidates[j].get('dependsOn') == build]) == 0:
+                    self.candidates[build]['final'] = True
+
+    def checkCandidates(self):
+        all_targets = [v['target'] for k, v in self.candidates.items()]
+        if len(all_targets) != len(set(all_targets)):
+            raise Exception('Error: detected non-unique targets')
+        for cand in self.candidates:
+            dep = self.candidates[cand].get('dependsOn')
+            if dep:
+                if dep == cand:
+                    raise Exception(f'Error: found self-dependency for {cand}')
+                elif dep not in self.candidates:
+                    raise Exception(f'Error: non-existent dependency for {cand}')
+                dep_obj = self.candidates[dep]
+                cand_obj = self.candidates[cand]
+                if cand_obj['image'] == dep_obj['image'] and cand_obj['version'] < dep_obj['version']:
+                    raise Exception(f'Error: {cand} has dependency with higher version of same image: {dep}')
+        for image in self.getImages():
+            final_count = sum(
+                [1 for v in self.candidates.values() if f'{v["image"]}:{v["version"]}' == image and v.get('final')])
+            if final_count != 1:
+                raise Exception(f'Error: no single final science image for {image}')
+
+    def checkDirUpdated(self, dir):
+        if os.path.abspath(dir) in self.ignore:
+            logging.debug(f'ignoring update check for {dir} based on ignore list')
+            return False
+        if self.include:
+            if os.path.abspath(dir) in self.include:
+                return True
+            return False
+        if self.gitCommand('diff', self.commit, '--', dir):
+            return True
+        elif self.allow_untracked and '..' not in self.commit or self.commit.endswith('..'):
+            if not self.gitCommand('ls-files', os.path.join(dir, 'sciserver-image.json')):
+                return True
+
+    def getBuildCandidates(self):
+        self.buildcand = []
+        for i in self.candidates:
+            if self.checkDirUpdated(os.path.join('science', i)):
+                logging.info(f'Found candidate for build based on changes: {i} => {self.candidates[i]}')
+                self.buildcand.append(i)
+
+    def getAllCompat(self):
+        self.compat = {}
+        for compat in glob.glob(os.path.join('compat', '*', 'sciserver-image.json')):
+            name = compat.split(os.path.sep)[-2]
+            with open(compat, 'r') as f:
+                self.compat[name] = json.load(f)
+            if not os.path.isfile(os.path.join('compat', name, 'Dockerfile')):
+                raise Exception(f'missing Dockerfile for compat build {name}')
+
+    def getCompatUpdates(self):
+        self.compat_updates = [
+            i for i in self.compat if self.checkDirUpdated(os.path.join('compat', i))]
+
+    def compatExpandIncludes(self):
+        def expand(parent, child, start=False):
+            if start:
+                child = parent
+            elif not child:
+                return
+            elif child == parent or child in self.compat[parent]['resolved_includes']:
+                raise Exception(f'circular dependency found in compat build for {parent} ({child})')
+            includes = self.compat[child or parent].get('includes', [])
+            for inc in includes:
+                expand(parent, inc)
+            if not start:
+                parent_obj = self.compat[parent]
+                parent_obj['resolved_includes'].append(child)
+
+        for k, v in self.compat.items():
+            if not v.get('includes'):
+                continue
+            v['resolved_includes'] = []
+            expand(k, None, True)
+
+    def resolveCompatDependencies(self):
+        self.compatExpandIncludes()
+        additional_updates = []
+        for k, v in self.compat.items():
+            if k in self.compat_updates:
+                continue
+            if set(v.get('resolved_includes', [])).intersection(set(self.compat_updates)):
+                logging.info(f'adding compat update {k} as a result of updated dependency')
+                additional_updates.append(k)
+        self.compat_updates.extend(additional_updates)
+
+    def getCompatTriggeredBuilds(self, plan):
+        self.getAllCompat()
+        self.getCompatUpdates()
+        self.resolveCompatDependencies()
+        builds = []
+        for science, science_info in self.candidates.items():
+            if science_info.get('final') and science_info.get('compat') in self.compat_updates and science not in plan:
+                builds.append(self.generateBuildPlan('compat', science_info))
+        return builds
+
+    def generateBuildPlan(self, build_type, build_info):
+        if build_type == 'science':
+            build_from = build_info['path']
+            target = build_info['target']
+            repo_base = f'{self.repo}/sci'
+        else:
+            build_from = f'{self.repo}/sci/{build_info["target"]}:{build_info["version"]}'
+            target = build_info['image']
+            repo_base = f'{self.repo}/rel'
+            if build_info['compat'] not in self.compat:
+                raise Exception(f'unknown compat build {build_info["compat"]}')
+
+        image = build_info["image"]
+        build_tag = f'{target}:{build_info["version"]}-{self.commit_n}-{self.commit_hash}'
+        version_tag = f'{target}:{build_info["version"]}'
+        build_plan = {
+            'type': build_type,
+            'from': build_from,
+            'version': build_tag,
+            'to': [
+                f'{repo_base}/{build_tag}',
+                f'{repo_base}/{version_tag}',
+            ]
+        }
+        if build_type == 'compat':
+            build_plan['compat'] = build_info['compat']
+            logging.warning(f'change results in final image {image} => {build_tag}, {version_tag}')
+        return build_plan
+
+    def planBuild(self):
+        self.getAllCandidates()
+        self.getBuildDependencies()
+        self.checkCandidates()
+        self.getBuildCandidates()
+        self.getBuildInfo()
+        self.getAllCompat()
+        cand = self.buildcand.copy()
+        plan = []
+        while len(cand):
+            c = cand.pop(0)
+            dep = self.candidates[c].get('dependsOn')
+            if dep in plan:
+                plan.append(c)
+            elif dep in cand:
+                cand.append(c)
+            else:
+                plan.append(c)
+            nb = self.candidates[c].get('neededBy', [])
+            for i in nb:
+                if i not in cand:
+                    logging.info(f'adding {i} to plan triggered by change in {c}')
+                    cand.append(i)
+        plan_info = []
+        for c in plan:
+            build_plan = self.generateBuildPlan('science', self.candidates[c])
+            logging.debug(f'adding science build to plan: {build_plan}')
+            plan_info.append(build_plan)
+            if self.candidates[c].get('final') and 'compat' in self.candidates[c]:
+                build_plan = self.generateBuildPlan('compat', self.candidates[c])
+                logging.debug(f'adding compat build to plan: {build_plan}')
+                plan_info.append(build_plan)
+
+        # now add in any necessary updates due to compat changes:
+        plan_info.extend(self.getCompatTriggeredBuilds(plan))
+        self.plan_info = plan_info
+
+        # report
+        n_science = sum([1 for i in plan_info if i['type'] == 'science'])
+        n_compat = sum([1 for i in plan_info if i['type'] == 'compat'])
+        logging.warning(f'final plan includes {n_science} science build(s) and {n_compat} compat build(s)')
+        logging.debug('final plan: ' + json.dumps(plan_info, indent=2))
+        return plan_info
+
+    def runCommand(self, cmd):
+        if self.dryrun:
+            logging.info(f'dryrun - run command: {" ".join(cmd)}')
+            return
+        logging.debug(f'running command {cmd}')
+        subprocess.run(cmd, check=True, stdout=sys.stdout, stderr=sys.stderr)
+
+    def pushCommand(self, to):
+        for dest in to:
+            cmd = ['docker', 'push', '-q', dest]
+            if self.dryrun or not self.push:
+                logging.info(f'dryrun - push: {" ".join(cmd)}')
+            else:
+                self.runCommand(cmd)
+
+    def executeScienceBuild(self, build):
+        targ, ver = build['version'].split(':', 1)
+        # breadcrumb trail for science builds
+        vlabel = f'org.sciserver.science.{targ}.version={ver}'
+        tlabel = f'org.sciserver.science.{targ}.buildtime={time.time()}'
+        cmd = ['docker', 'build', build['from'], '--label', vlabel, '--label', tlabel]
+        for to in build['to']:
+            cmd += ['--tag', to]
+        logging.debug(f'running science build: {cmd}')
+        self.runCommand(cmd)
+        self.pushCommand(build['to'])
+
+    def executeCompatBuild(self, build):
+        base_path = os.path.join(self.root, 'compat', build['compat'])
+        temp_path = os.path.join(self.root, 'tmp', f'compat-{time.time()}')
+        with open(os.path.join(base_path, 'sciserver-image.json'), 'r') as f:
+            compat_spec = json.load(f)
+
+        logging.info(f'preparing compat build for {build["from"]} using {base_path} in {temp_path}')
+        os.makedirs(temp_path, exist_ok=True)
+
+        dockerfile = 'FROM ' + build['from'] + '\n'
+        for inc in compat_spec.get('includes', []) + [build['compat']]:
+            logging.info(f'...including {inc} in compat build')
+            with open(os.path.join(self.root, 'compat', inc, 'Dockerfile'), 'r') as f:
+                dockerfile += f.read() + '\n'
+            subprocess.check_output(['rsync', '-a', os.path.join('compat', inc, ''), temp_path])
+
+        # add some image info to this build and write out final dockerfile
+        dockerfile += f'ENV SCISERVER_IMAGE={build["version"]}\n'
+        with open(os.path.join(temp_path, 'Dockerfile'), 'w') as f:
+            f.write(dockerfile)
+
+        # breadcrumb trail for compat
+        vlabel = f'org.sciserver.compat.version={build["version"]}'
+        tlabel = f'org.sciserver.compat.buildtime={time.time()}'
+        cmd = ['docker', 'build', temp_path, '--label', vlabel, '--label', tlabel]
+        for to in build['to']:
+            cmd += ['--tag', to]
+        self.runCommand(cmd)
+        self.pushCommand(build['to'])
+
+    def executeBuild(self, build):
+        if build['type'] == 'science':
+            self.executeScienceBuild(build)
+        elif build['type'] == 'compat':
+            self.executeCompatBuild(build)
+        else:
+            raise Exception(f'unknown build type {build["type"]}')
+
+    def executeBuilds(self):
+        for build in self.plan_info:
+            self.executeBuild(build)
+
+
+if __name__ == '__main__':
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--verbose', '-v', action='count', default=0)
+    ap.add_argument('--repo', default='containers.repo.sciserver.org/compute-images')
+    ap.add_argument('--ref', default='HEAD^')
+    ap.add_argument('--root', default=os.getcwd())
+    ap.add_argument('--ignore', nargs='+', default=[])
+    ap.add_argument('--include', nargs='+', default=[])
+    ap.add_argument('--dryrun', action='store_true')
+    ap.add_argument('--push', action='store_true')
+    ap.add_argument('--untracked', action='store_true')
+    args = ap.parse_args()
+
+    ib = ImageBuilder(**vars(args))
+    logging.getLogger().setLevel(logging.ERROR - 10*args.verbose)
+    ib.planBuild()
+    ib.executeBuilds()
+    if len(ib.plan_info) > 0 and not args.dryrun and not args.push:
+        logging.warning('** NOTE ** built images not pushed, use --push to upload to repository ** NOTE **')

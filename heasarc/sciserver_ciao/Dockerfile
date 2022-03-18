@@ -1,11 +1,10 @@
 FROM sciserver_heasoft:v6.29
 
 ARG heasoft_version=6.29
-ARG ciao_version=4.13
+ARG ciao_version=4.14
 ARG sciserver_user=idies
 #ARG caldb_root=/FTP/caldb
 ARG caldb_root=/home/idies/workspace/headata/FTP/caldb
-
 
 LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}" \
       description="HEASoft+CIAO User Environment Image" \
@@ -24,19 +23,17 @@ RUN apt-get update \
 
 USER ${sciserver_user}
 
-# install mamba to replace conda
+# Install mamba to replace conda
 RUN conda install -y -c conda-forge mamba && conda clean -y --all
 RUN mamba update -n base mamba && conda clean -y --all
 RUN mamba update -n base conda && conda clean -y --all
 
 ENV CIAO_VERSION=${ciao_version}
 
-
 RUN conda create -y -n ciao python=3.7
 RUN mamba install -y -n ciao -c https://cxc.cfa.harvard.edu/conda/ciao ciao sherpa ciao-contrib caldb_main marx && conda clean -y --all
 
 WORKDIR /home/${sciserver_user}
 
-#  Init's the .bashrc
+# Init's the .bashrc
 RUN conda init bash
-

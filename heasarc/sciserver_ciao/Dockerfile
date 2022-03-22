@@ -25,6 +25,7 @@ USER ${sciserver_user}
 
 ENV CIAO_VERSION=${ciao_version}
 
+# create ciao conda env
 RUN conda create -n $pythonenv python=3.8 \
  && conda clean -y --all
 

@@ -15,7 +15,7 @@ LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/Fermitools ${ferm
 ## Instructions from Fermitools page
 USER ${sciserver_user}
 
-# Install Fermi
+# Create Fermi conda env
 RUN conda create -n $pythonenv python=3 \
  && conda clean -y --all
 

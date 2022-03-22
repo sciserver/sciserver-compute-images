@@ -95,6 +95,8 @@ WORKDIR /home/${sciserver_user}
 
 
 # Configure shells...
+# also, add a script in env/etc/conda/activate.d, so it runs 
+# when the envirenment is activated
 RUN echo "# Initialize HEASoft environment & caldb \n\
 export HEADAS=$(ls -d /opt/heasoft/x86_64*) \n\
 . \$HEADAS/headas-init.sh \n\n\
@@ -102,8 +104,10 @@ export CALDB=${caldb_root} \n\
 . \$CALDB/software/tools/caldbinit.sh \n\n\
 conda activate ${pythonenv} \n\
 " > /tmp/tmp.sh \
- && cat /tmp/tmp.sh >> /home/${sciserver_user}/.bashrc \
- && cat /tmp/tmp.sh >> /home/${sciserver_user}/.profile
+ && cat /tmp/tmp.sh >> .bashrc \
+ && cat /tmp/tmp.sh >> .profile
+ && mkdir -p ./miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+ && head -n -2 /tmp/tmp.sh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/heasoft_init.sh
  
 RUN echo "# Initialize HEASoft environment & caldb \n\
 setenv HEADAS $(ls -d /opt/heasoft/x86_64*) \n\

@@ -17,7 +17,7 @@ LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/Fermitools ${ferm
 
 USER ${sciserver_user}
 
-# Install Fermi
+# Create xmmsas env
 RUN conda create -n $pythonenv python=3.8 \
  && conda clean -y --all
 
@@ -56,17 +56,21 @@ RUN conda run -n $pythonenv pip install --no-cache -r /opt/xmmsas/sas_${xmmsas_v
 
 
 # Configure shells...
+# also, add a script in env/etc/conda/activate.d, so it runs 
+# when the envirenment is activated
 RUN echo "# Initialize XMMSAS environment \n\
 export SAS_DIR=$(ls -d /opt/xmmsas/xmmsas_*) \n\
 . \$SAS_DIR/setsas.sh \n\n\
 export SAS_CCFPATH=${xmmsas_ccfpath} \n\
 " > /tmp/tmp.sh \
- && cat /tmp/tmp.sh >> /home/${sciserver_user}/.bashrc \
- && cat /tmp/tmp.sh >> /home/${sciserver_user}/.profile
+ && cat /tmp/tmp.sh >> .bashrc \
+ && cat /tmp/tmp.sh >> .profile \
+ && mkdir -p ./miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+ && cat /tmp/tmp.sh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/xmmsas_init.sh
  
-RUN echo -e "# Initialize XMMSAS environment \n\
+RUN echo "# Initialize XMMSAS environment \n\
 setenv SAS_DIR $(ls -d /opt/xmmsas/xmmsas_*) \n\
 source \$SAS_DIR/setsas.csh \n\n\
 setenv SAS_CCFPATH ${xmmsas_ccfpath} \n\
-" > /home/${sciserver_user}/.cshrc
+" > .cshrc
 

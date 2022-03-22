@@ -7,9 +7,9 @@
 set -e
 
 xte=true
-ciao=true
-fermi=true
-xmm=true
+ciao=false
+fermi=false
+xmm=false
 
 echo "xte=${xte}, chandra=${chandra}, fermi=${fermi}, xmm=${xmm}"
 
@@ -164,10 +164,13 @@ echo ""
 echo "#############  XMM SAS stuff #########"
 echo "              (under development) "
 
+echo "  (switching to xmmsas environment) "
+conda activate xmmsas
 
 echo "###  running SAS setup"
 export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf
-source /opt/xmmsas/setsas.sh
+source /opt/xmmsas/xmmsas_*/setsas.sh
+
 
 
 echo "###  which python"
@@ -182,7 +185,7 @@ echo ""
 
 if [ ! -d out_xmm ] ; then
     mkdir -p out_xmm
-    (cd out_xmm/; ln -s ~/workspace/Temporary/tjaffe/scratch/0123700101 )
+    (cd out_xmm/; ln -s ../data/FTP/xmm/data/rev0/0123700101 )
 else
     rm -rf out_xmm/0123700101/reproc
 fi
@@ -194,5 +197,7 @@ else
     exit
 fi
 echo ""
+
+conda deactivate
 
 fi 

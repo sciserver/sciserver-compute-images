@@ -1,8 +1,6 @@
 ipykernel
 wurlitzer
-numpy
 pyvo
-pyds9
 scikit-learn
 matplotlib
 healpy

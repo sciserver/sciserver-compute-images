@@ -20,9 +20,7 @@ echo "$(date) - completed scanning for conda environments. Starting Jupyter serv
 . ~/.bashrc   
 
 
-exec env \
-        -u SUDO_UID -u SUDO_GID -u SUDO_COMMAND -u SUDO_USER \
-        HOME=/home/idies SHELL=/bin/bash /home/idies/miniconda3/envs/heasarc/bin/jupyter lab \
+/home/idies/miniconda3/envs/heasoft/bin/jupyter lab \
     --no-browser \
     --ip=* \
     --notebook-dir=/home/idies/workspace \

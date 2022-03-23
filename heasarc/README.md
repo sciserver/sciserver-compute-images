@@ -65,8 +65,6 @@ Starting from sciserver-ubuntu18, we have the following images:
 
 - Download & install sas ensuring that a variable PYTHON is defined to point to the executable from the xmmsas environment: `ENV SAS_PYTHON=/home/${sciserver_user}/miniconda3/envs/xmmsas/bin/python`
 
-- Add a small tweak to SAS_DIR/setsas.sh to supress the  messages printed after initialization. In this case, they are the last two lines. This is optional
-
 - Install python dependencies of sas in the conda environment xmmsas. Not all packages are available through conda, so we use pip.
 
 - Add sas initalization to .bashrc/.cshrc. Also add a script to `$CONDA/envs/xmmsas/etc/conda/activate.d`. Any script there will be executed whenever the xmmsas conda envirenment is activated.

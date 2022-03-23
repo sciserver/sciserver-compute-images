@@ -47,16 +47,6 @@ RUN conda run -n $pythonenv ./install.sh
 ## ---------------------- ##
 
 
-## ------------------ ##
-## Clean Output tweak ##
-# remove the last 2 lines in $SAS_DIR/setsas.(c)sh to supress their print during initalization
-# This is optional, but makes a new bash session cleaner
-RUN SAS_DIR=$(ls -d ${xmmsas_dir}/xmmsas_*) \
- && sed "$(( $(wc -l <$SAS_DIR/setsas.sh)-2+1 )),$ d" $SAS_DIR/setsas.sh > setsas.sh \
- && sed "$(( $(wc -l <$SAS_DIR/setsas.csh)-2+1 )),$ d" $SAS_DIR/setsas.csh > setsas.csh \
- && mv setsas.* $SAS_DIR
-## ------------------ ##
-
 
 ## --------------------------- ##
 ## Install python dependencies ##
@@ -73,17 +63,19 @@ RUN conda run -n $pythonenv pip install --no-cache -r ${xmmsas_dir}/sas_${xmmsas
 # when the envirenment is activated
 RUN echo "# Initialize XMMSAS environment \n\
 export SAS_DIR=$(ls -d ${xmmsas_dir}/xmmsas_*) \n\
-. \$SAS_DIR/setsas.sh \n\n\
+alias sasinit=\". \$SAS_DIR/setsas.sh\" \n\n\
 export SAS_CCFPATH=${xmmsas_ccfpath} \n\
 " > /tmp/tmp.sh \
  && cat /tmp/tmp.sh >> .bashrc \
  && cat /tmp/tmp.sh >> .profile \
  && mkdir -p ./miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+ && echo "sasinit" >> /tmp/tmp.sh \
  && cat /tmp/tmp.sh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/xmmsas_init.sh
+ 
  
 RUN echo "# Initialize XMMSAS environment \n\
 setenv SAS_DIR $(ls -d ${xmmsas_dir}/xmmsas_*) \n\
-source \$SAS_DIR/setsas.csh \n\n\
+alias sasinit \"source \$SAS_DIR/setsas.csh\" \n\n\
 setenv SAS_CCFPATH ${xmmsas_ccfpath} \n\
 " > .cshrc
 ## ------------------- ##

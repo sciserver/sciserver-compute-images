@@ -32,3 +32,8 @@ RUN conda run -n $pythonenv pip install --no-cache fermipy
 
 # reset 
 WORKDIR /home/${sciserver_user}
+
+# supress the warning about these variables being set when activating fermi
+# the name makes it run before other fermi activation scripts 
+RUN echo -e "unset LD_LIBRARY_PATH\n\
+unset PYTHONPATH" > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate-a.sh

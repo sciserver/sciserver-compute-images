@@ -12,17 +12,23 @@ LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/Fermitools ${ferm
       description="Fermitools User Environment Image for SciServer" \
       maintainer="NASA/GSFC/HEASARC https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback and mtaghiza"
 
-## Instructions from Fermitools page
+## ------------------------ ##
+## Create a fermi conda env ##
 USER ${sciserver_user}
 
-# Create Fermi conda env
 RUN conda create -n $pythonenv python=3 \
  && conda clean -y --all
+## ------------------------ ##
 
 
+## ------------------------------------ ##
+## Install the fermitools conda package ##
 RUN mamba install -n $pythonenv -y -c conda-forge -c fermi fermitools python=3 clhep=2.4.4.1 \
  && conda clean -y --all
 
+# .. and fermipy pip
 RUN conda run -n $pythonenv pip install --no-cache fermipy
+## ------------------------------------ ##
 
+# reset 
 WORKDIR /home/${sciserver_user}

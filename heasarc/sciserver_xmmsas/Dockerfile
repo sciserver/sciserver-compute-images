@@ -15,14 +15,17 @@ LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/Fermitools ${ferm
       maintainer="NASA/GSFC/HEASARC https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback and mtaghiza"
 
 
+## ------------------------- ##
+## Create a xmmsas conda env ##
 USER ${sciserver_user}
 
-# Create xmmsas env
 RUN conda create -n $pythonenv python=3.8 \
  && conda clean -y --all
+## ------------------------- ##
 
 
-# Create directory
+## ---------------------- ##
+## Download & install sas ##
 USER root
 RUN mkdir -p ${xmmsas_dir}
 WORKDIR ${xmmsas_dir}
@@ -30,36 +33,46 @@ WORKDIR ${xmmsas_dir}
 ENV SAS_VERSION=${xmmsas_version}
 ENV UBUNTU_VERSION=18.04
 
+# download
 RUN wget https://heasarc.gsfc.nasa.gov/FTP/xmm/software/sas/${SAS_VERSION}/Linux/Ubuntu${UBUNTU_VERSION}/sas_${SAS_VERSION}-Ubuntu${UBUNTU_VERSION}.tgz \
  && tar xzvf sas_${SAS_VERSION}-Ubuntu${UBUNTU_VERSION}.tgz \
  && rm -f sas_${SAS_VERSION}-Ubuntu${UBUNTU_VERSION}.tgz
 
+# userful variables
 ENV SAS_PERL=/usr/bin/perl
 ENV SAS_PYTHON=/home/${sciserver_user}/miniconda3/envs/${pythonenv}/bin/python
 
-# Install Xmmsas
+# run install script
 RUN conda run -n $pythonenv ./install.sh 
+## ---------------------- ##
 
-# remove the last 2 lines in $SAS_DIR/setsas.(c)sh to supress their print
-# during initalizations
-RUN SAS_DIR=$(ls -d /opt/xmmsas/xmmsas_*) \
+
+## ------------------ ##
+## Clean Output tweak ##
+# remove the last 2 lines in $SAS_DIR/setsas.(c)sh to supress their print during initalization
+# This is optional, but makes a new bash session cleaner
+RUN SAS_DIR=$(ls -d ${xmmsas_dir}/xmmsas_*) \
  && sed "$(( $(wc -l <$SAS_DIR/setsas.sh)-2+1 )),$ d" $SAS_DIR/setsas.sh > setsas.sh \
  && sed "$(( $(wc -l <$SAS_DIR/setsas.csh)-2+1 )),$ d" $SAS_DIR/setsas.csh > setsas.csh \
  && mv setsas.* $SAS_DIR
+## ------------------ ##
 
 
+## --------------------------- ##
+## Install python dependencies ##
 USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}
 
-# install python dependencies
-RUN conda run -n $pythonenv pip install --no-cache -r /opt/xmmsas/sas_${xmmsas_version}_python_packages.txt
+RUN conda run -n $pythonenv pip install --no-cache -r ${xmmsas_dir}/sas_${xmmsas_version}_python_packages.txt
+## --------------------------- ##
 
 
-# Configure shells...
+## ------------------- ##
+## Configure shells... ##
 # also, add a script in env/etc/conda/activate.d, so it runs 
 # when the envirenment is activated
 RUN echo "# Initialize XMMSAS environment \n\
-export SAS_DIR=$(ls -d /opt/xmmsas/xmmsas_*) \n\
+export SAS_DIR=$(ls -d ${xmmsas_dir}/xmmsas_*) \n\
 . \$SAS_DIR/setsas.sh \n\n\
 export SAS_CCFPATH=${xmmsas_ccfpath} \n\
 " > /tmp/tmp.sh \
@@ -69,8 +82,8 @@ export SAS_CCFPATH=${xmmsas_ccfpath} \n\
  && cat /tmp/tmp.sh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/xmmsas_init.sh
  
 RUN echo "# Initialize XMMSAS environment \n\
-setenv SAS_DIR $(ls -d /opt/xmmsas/xmmsas_*) \n\
+setenv SAS_DIR $(ls -d ${xmmsas_dir}/xmmsas_*) \n\
 source \$SAS_DIR/setsas.csh \n\n\
 setenv SAS_CCFPATH ${xmmsas_ccfpath} \n\
 " > .cshrc
-
+## ------------------- ##

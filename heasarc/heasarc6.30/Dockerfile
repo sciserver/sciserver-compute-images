@@ -38,7 +38,9 @@ RUN mamba install -y jupyter jupyterlab && mamba clean -y --all
 
 ## ------------------------ ##
 ## Install WWT labextension ##
-RUN mamba install -y -c conda-forge nodejs=16 \
+## NODE_OPTIONS is needed to avoid build failure
+ENV NODE_OPTIONS=--openssl-legacy-provider
+RUN mamba install -y -c conda-forge nodejs=17 \
  && mamba clean -y --all \
  && jupyter labextension install @wwtelescope/jupyterlab
 ## ------------------------ ##
@@ -115,4 +117,5 @@ RUN jupyter lab build
 
 
 # reset shell
+ENV SHELL=/bin/bash
 SHELL ["/bin/bash", "-c"]

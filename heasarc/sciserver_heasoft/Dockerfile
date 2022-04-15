@@ -84,9 +84,18 @@ RUN cd /home/${sciserver_user}/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
  && make install 2>&1 | tee /home/${sciserver_user}/install.log
 ## ------------------------------- ##
 
+## ------------------ ##
+## Apply patch 6.30.1 
+RUN cd /home/${sciserver_user} \
+ && wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft6.30/updates/hdpatch_6.30.1 \
+ && sed -i '1iexport HEADAS=$(ls -d /opt/heasoft/x86_64*)\n\
+ . \$HEADAS/headas-init.sh\n' hdpatch_6.30.1\
+ && bash hdpatch_6.30.1 \
+ && rm heasoft-6.30.1_src.tar.gz hdpatch_6.30.1
+## ------------------ ##
 
 ## ---------------- ##
-## Tweask for Xspec ##
+## Tweaks for Xspec ##
 # add xspec model data from the data location in ~/workspace/headata/FTP
 RUN ln -sf /home/${sciserver_user}/workspace/headata/FTP/software/lheasoft/lheasoft${HEASOFT_VERSION}/heasoft-${HEASOFT_VERSION}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData
 

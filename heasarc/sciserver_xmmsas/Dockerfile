@@ -1,7 +1,7 @@
-FROM sciserver_fermi:v6.30.4.14.2.0.8
+FROM sciserver_fermi:v6.30.1.4.14.2.0.8
 
-ARG version=6.30.4.14.2.0.8.20.0.0
-ARG heasoft_version=6.30
+ARG version=6.30.1.4.14.2.0.8.20.0.0
+ARG heasoft_version=6.30.1
 ARG ciao_version=4.14
 ARG fermi_version=2.0.8
 ARG xmmsas_version=20.0.0
@@ -69,13 +69,12 @@ export SAS_CCFPATH=${xmmsas_ccfpath} \n\
  && cat /tmp/tmp.sh >> .bashrc \
  && cat /tmp/tmp.sh >> .profile \
  && mkdir -p ./miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && echo "sasinit" >> /tmp/tmp.sh \
- && cat /tmp/tmp.sh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/xmmsas_init.sh
- 
- 
-RUN echo "# Initialize XMMSAS environment \n\
+ && echo "sasinit" >> ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/xmmsas_init.sh \
+ \
+ && echo "# Initialize XMMSAS environment \n\
 setenv SAS_DIR $(ls -d ${xmmsas_dir}/xmmsas_*) \n\
 alias sasinit \"source \$SAS_DIR/setsas.csh\" \n\n\
 setenv SAS_CCFPATH ${xmmsas_ccfpath} \n\
-" > .cshrc
+" >> .cshrc \
+ && echo "sasinit" >> ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/xmmsas_init.csh
 ## ------------------- ##

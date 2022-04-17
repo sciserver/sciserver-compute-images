@@ -15,7 +15,7 @@
 #=============================================================================#
 
 IMAGE_NAME = sciserver_heasoft
-IMAGE_VERSION = 6.30
+IMAGE_VERSION = 6.30.1
 IMAGE_LABEL = v$(IMAGE_VERSION)
 
 image:

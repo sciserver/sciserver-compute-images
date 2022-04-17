@@ -1,7 +1,7 @@
-FROM sciserver_ciao:v6.30.4.14
+FROM sciserver_ciao:v6.30.1.4.14
 
-ARG version=6.30.4.14.2.0.8
-ARG heasoft_version=6.30
+ARG version=6.30.1.4.14.2.0.8
+ARG heasoft_version=6.30.1
 ARG ciao_version=4.14
 ARG fermi_version=2.0.8
 ARG sciserver_user=idies

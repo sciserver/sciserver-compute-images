@@ -1,6 +1,6 @@
-FROM sciserver_xmmsas:v6.30.4.14.2.0.8.20.0.0
+FROM sciserver_xmmsas:v6.30.1.4.14.2.0.8.20.0.0
 
-ARG heasoft_version=6.30
+ARG heasoft_version=6.30.1
 ARG xmmsas_version=20.0.0
 ARG sciserver_group=idies
 ARG sciserver_user=idies
@@ -77,9 +77,9 @@ COPY overrides.json /home/idies/miniconda3/envs/heasoft/share/jupyter/lab/settin
 ## ------------------------------ ##
 ## Install extra python libraries ##
 ADD requirements.txt requirements.txt
-RUN mamba install -y --file requirements.txt && mamba clean -y --all && rm requirements.txt
-
-RUN cd /home/${sciserver_user}/SciScript-Python \
+RUN mamba install -y --file requirements.txt && mamba clean -y --all && rm requirements.txt \
+ \
+ && cd /home/${sciserver_user}/SciScript-Python \
  && git checkout sciserver-v2.0.13  && cd py3 && python setup.py install
 ## ------------------------------ ##
 
@@ -96,12 +96,12 @@ COPY link_data /usr/local/bin/
 COPY lynx_dump /usr/local/bin/
 COPY pdump /usr/local/bin/
 COPY sciversions /usr/local/bin/
-RUN chgrp ${sciserver_group} /usr/local/bin/*
-
 COPY startup.sh /opt/startup.sh
-RUN chmod +rx /opt/startup.sh
 
-RUN chgrp ${sciserver_group} /home/${sciserver_user}/.jupyter/jupyter_notebook_config.py && chmod g+rw /home/${sciserver_user}/.jupyter/jupyter_notebook_config.py
+RUN chgrp ${sciserver_group} /usr/local/bin/* \
+ && chmod +rx /opt/startup.sh \
+ && chgrp ${sciserver_group} /home/${sciserver_user}/.jupyter/jupyter_notebook_config.py \
+ && chmod g+rw /home/${sciserver_user}/.jupyter/jupyter_notebook_config.py
 
 # create symlink for Hesarc data volume
 RUN ln -s /home/${sciserver_user}/workspace/headata/FTP /FTP

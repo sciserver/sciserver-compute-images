@@ -15,7 +15,7 @@
 #=============================================================================#
 
 IMAGE_NAME = sciserver_ciao
-IMAGE_VERSION = 6.30.4.14
+IMAGE_VERSION = 6.30.1.4.14
 IMAGE_LABEL = v$(IMAGE_VERSION)
 
 image:

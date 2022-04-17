@@ -185,7 +185,7 @@ echo ""
 
 if [ ! -d out_xmm ] ; then
     mkdir -p out_xmm
-    (cd out_xmm/; ln -s ../data/FTP/xmm/data/rev0/0123700101 )
+    (cd out_xmm/; cp -r ../data/FTP/xmm/data/rev0/0123700101 . && cd 0123700101/ODF && gzip -d *gz && cd ../..)
 else
     rm -rf out_xmm/0123700101/reproc
 fi

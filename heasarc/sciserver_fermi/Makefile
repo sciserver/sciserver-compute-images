@@ -15,7 +15,7 @@
 #=============================================================================#
 
 IMAGE_NAME = sciserver_fermi
-IMAGE_VERSION = 6.30.4.14.2.0.8
+IMAGE_VERSION = 6.30.1.4.14.2.0.8
 IMAGE_LABEL = v$(IMAGE_VERSION)
 
 image:

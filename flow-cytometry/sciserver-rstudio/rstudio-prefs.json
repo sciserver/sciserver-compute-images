@@ -1,0 +1,7 @@
+{
+    "reuse_sessions_for_project_links": true,
+    "initial_working_directory": "~/workspace",
+    "graphics_backend": "cairo",
+    "posix_terminal_shell": "bash"
+}
+

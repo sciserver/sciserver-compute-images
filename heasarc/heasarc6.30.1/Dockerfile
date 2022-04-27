@@ -12,6 +12,17 @@ LABEL version="HEASoft ${heasoft_version}" \
       description="HEASoft User Environment Image" \
       maintainer="NASA/GSFC/HEASARC https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback"
 
+## ----------------------- ##
+## Install useful software ##
+USER root
+RUN apt-get update && apt-get -y install \
+        zip unzip \
+        ghostscript \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+## ----------------------- ##
+
+
 ## ----------- ##
 ## preparation ##
 USER ${sciserver_user}

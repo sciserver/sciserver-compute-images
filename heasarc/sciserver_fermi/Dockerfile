@@ -1,21 +1,39 @@
-FROM sciserver_ciao:v6.29.4.14
+FROM sciserver_ciao:v6.30.1.4.14
 
-ARG version=6.29.4.14.2.0.8
-ARG heasoft_version=6.29
+ARG version=6.30.1.4.14.2.0.8
+ARG heasoft_version=6.30.1
 ARG ciao_version=4.14
 ARG fermi_version=2.0.8
 ARG sciserver_user=idies
+ARG pythonenv=fermi
+
 
 LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/Fermitools ${fermi_version}" \
       description="Fermitools User Environment Image for SciServer" \
       maintainer="NASA/GSFC/HEASARC https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback and mtaghiza"
 
-## Instructions from Fermitools page
+## ------------------------ ##
+## Create a fermi conda env ##
 USER ${sciserver_user}
 
-# Install Fermi
-RUN conda create -y -n fermi -c conda-forge -c fermi fermitools python=3 clhep=2.4.4.1 && conda clean -y --all
+RUN conda create -n $pythonenv python=3 \
+ && conda clean -y --all
+## ------------------------ ##
 
-RUN /bin/bash -c ". /home/idies/miniconda3/etc/profile.d/conda.sh ; conda activate fermi ; pip install --no-cache fermipy "
 
+## ------------------------------------ ##
+## Install the fermitools conda package ##
+RUN mamba install -n $pythonenv -y -c conda-forge -c fermi fermitools python=3 clhep=2.4.4.1 \
+ && conda clean -y --all
+
+# .. and fermipy pip
+RUN conda run -n $pythonenv pip install --no-cache fermipy
+## ------------------------------------ ##
+
+# reset 
 WORKDIR /home/${sciserver_user}
+
+# supress the warning about these variables being set when activating fermi
+# the name makes it run before other fermi activation scripts 
+RUN printf "unset LD_LIBRARY_PATH\n\
+unset PYTHONPATH" > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate-a.sh

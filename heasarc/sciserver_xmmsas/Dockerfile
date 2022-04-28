@@ -1,54 +1,80 @@
-FROM sciserver_fermi:v6.29.4.14.2.0.8
+FROM sciserver_fermi:v6.30.1.4.14.2.0.8
 
-ARG version=6.29.4.14.2.0.8.20.0.0
-ARG heasoft_version=6.29
+ARG version=6.30.1.4.14.2.0.8.20.0.0
+ARG heasoft_version=6.30.1
 ARG ciao_version=4.14
 ARG fermi_version=2.0.8
 ARG xmmsas_version=20.0.0
 ARG xmmsas_dir=/opt/xmmsas
+ARG xmmsas_ccfpath=/FTP/caldb/data/xmm/ccf
 ARG sciserver_user=idies
+ARG pythonenv=xmmsas
 
 LABEL version="HEASoft ${heasoft_version}/CIAO ${ciao_version}/Fermitools ${fermi_version}/XMM SAS ${xmmsas_version}" \
       description="XMM SAS User Environment Image for SciServer" \
       maintainer="NASA/GSFC/HEASARC https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback and mtaghiza"
 
 
-## Instructions from Xmmsas page
-## 
+## ------------------------- ##
+## Create a xmmsas conda env ##
+USER ${sciserver_user}
 
-# Create directory
+RUN conda create -n $pythonenv python=3.8 \
+ && conda clean -y --all
+## ------------------------- ##
+
+
+## ---------------------- ##
+## Download & install sas ##
 USER root
 RUN mkdir -p ${xmmsas_dir}
 WORKDIR ${xmmsas_dir}
 
-ENV SAS_VERSION=${sas_version}
+ENV SAS_VERSION=${xmmsas_version}
 ENV UBUNTU_VERSION=18.04
 
+# download
 RUN wget https://heasarc.gsfc.nasa.gov/FTP/xmm/software/sas/${SAS_VERSION}/Linux/Ubuntu${UBUNTU_VERSION}/sas_${SAS_VERSION}-Ubuntu${UBUNTU_VERSION}.tgz \
  && tar xzvf sas_${SAS_VERSION}-Ubuntu${UBUNTU_VERSION}.tgz \
  && rm -f sas_${SAS_VERSION}-Ubuntu${UBUNTU_VERSION}.tgz
 
+# userful variables
 ENV SAS_PERL=/usr/bin/perl
-ENV SAS_PYTHON=/usr/bin/python3
+ENV SAS_PYTHON=/home/${sciserver_user}/miniconda3/envs/${pythonenv}/bin/python
 
-# Install Xmmsas
-RUN ./install.sh 
-#  Create links from /opt/xmmsas/ to versioned dir 
-RUN /bin/bash -c 'cd /opt/xmmsas/; for loop in xmmsas_*/*; do ln -sfn $loop; done'
-#  Note:  python libraries installed in final image step.
+# run install script
+RUN conda run -n $pythonenv ./install.sh 
+## ---------------------- ##
 
-ENV SAS_PATH=${xmmsas_dir}
 
+
+## --------------------------- ##
+## Install python dependencies ##
 USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}
 
-# Configure shells...
-RUN /bin/echo >> ${HOME}/.bashrc \
- && /bin/echo '# For XMMSAS environment' >> ${HOME}/.bashrc \
- && /bin/echo 'export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf' >> ${HOME}/.bashrc \
- && /bin/echo >> ${HOME}/.profile \
- && /bin/echo '# For XMMSAS environment' >> ${HOME}/.profile \
- && /bin/echo 'export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf' >> ${HOME}/.profile \
- && /bin/echo >> ${HOME}/.cshrc \
- && /bin/echo '# For XMMSAS environment' >> ${HOME}/.cshrc \
- && /bin/echo 'export SAS_CCFPATH=/FTP/caldb/data/xmm/ccf' >> ${HOME}/.cshrc 
+RUN conda run -n $pythonenv pip install --no-cache -r ${xmmsas_dir}/sas_${xmmsas_version}_python_packages.txt
+## --------------------------- ##
+
+
+## ------------------- ##
+## Configure shells... ##
+# also, add a script in env/etc/conda/activate.d, so it runs 
+# when the envirenment is activated
+RUN echo "# Initialize XMMSAS environment \n\
+export SAS_DIR=$(ls -d ${xmmsas_dir}/xmmsas_*) \n\
+alias sasinit=\". \$SAS_DIR/setsas.sh\" \n\n\
+export SAS_CCFPATH=${xmmsas_ccfpath} \n\
+" > /tmp/tmp.sh \
+ && cat /tmp/tmp.sh >> .bashrc \
+ && cat /tmp/tmp.sh >> .profile \
+ && mkdir -p ./miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+ && echo "sasinit" >> ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/xmmsas_init.sh \
+ \
+ && echo "# Initialize XMMSAS environment \n\
+setenv SAS_DIR $(ls -d ${xmmsas_dir}/xmmsas_*) \n\
+alias sasinit \"source \$SAS_DIR/setsas.csh\" \n\n\
+setenv SAS_CCFPATH ${xmmsas_ccfpath} \n\
+" >> .cshrc \
+ && echo "sasinit" >> ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/xmmsas_init.csh
+## ------------------- ##

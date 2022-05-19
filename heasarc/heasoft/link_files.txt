@@ -1,0 +1,9 @@
+Xspec/src/spectral/modeData
+ftools/xstar/data/atdb.fits
+heasim/skyback/torus1006.fits
+ftools/heasarc/tasks/nh/h1_nh_HI4PI.fits
+Xspec/src/help/XspecManual-12.12.1.tar.gz
+ftools/xstar/manual/xstarmanual.ps
+ftools/xstar/manual/xstarmanual.pdf
+ftools/xstar/manual/xstar_manual.ps
+ftools/xstar/manual/xstar_manual.tar.gz

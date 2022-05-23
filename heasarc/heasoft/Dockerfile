@@ -51,14 +51,17 @@ RUN conda create -n $pythonenv python=3.9 --file requirements.txt \
 ## they will be checked in
 USER root
 WORKDIR /home/${user}
-COPY link_files.txt .
 ENV PYTHON=/home/$user/miniconda3/envs/$pythonenv/bin/python
 ARG heasoft_tarfile_suffix=src_no_xspec_modeldata
 
 RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/heasoft-${version}${heasoft_tarfile_suffix}.tar.gz \
  && tar xzvf heasoft-${version}${heasoft_tarfile_suffix}.tar.gz \
  && rm -f heasoft-${version}${heasoft_tarfile_suffix}.tar.gz \
- && for f in `cat link_files.txt`;do rm -r heasoft-${version}/$f; done \
+ \
+ && rm -f ftools/xstar/data/atdb.fits \
+ && rm -f heasim/skyback/torus1006.fits \
+ && rm -f Xspec/src/help/XspecManual-12.12.1.tar.gz \
+ && rm -rf ftools/xstar/manual/*manual*.{ps,pdf,gz} \
  \
  \
 ## ------------------------------- ##
@@ -66,6 +69,8 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/
  && cd /home/$user/heasoft-${version}/BUILD_DIR/ \
  && ./configure --prefix=/opt/heasoft 2>&1 | tee /home/$user/configure.log \
  \
+ \
+ && mkdir -p /opt/heasoft \
  && cd /home/$user/heasoft-${version}/BUILD_DIR/ \
  && make 2>&1 | tee /home/$user/build.log \
  && make install 2>&1 | tee /home/$user/install.log \
@@ -84,8 +89,8 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/
 
 
 
-# ## ---------------- ##
-# ## Tweaks for Xspec ##
+## ---------------- ##
+## Tweaks for Xspec ##
 
 # Tweak Xspec settings for a no-X11 environment
 # add xspec and xstar model data from the data location in $headata
@@ -94,48 +99,41 @@ RUN echo -e "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/script
  && mv Xspec.init /opt/heasoft/spectral/manager/ \
  \
  && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData \
- && ln -sf /home/${user}/workspace/headata/FTP/software/lheasoft/lheasoft${HEASOFT_VERSION}/heasoft-${HEASOFT_VERSION}/ftools/xstar/data/atdb.fits /opt/heasoft/ftools/x86_64*/refdata/
+ && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/ftools/xstar/data/atdb.fits /opt/heasoft/refdata/ \
+ && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/heasim/skyback/torus1006.fits /opt/heasoft/refdata/
 ## ---------------- ##
 
 
-# ## ------------------- ##
-# ## Do some cleaning... ##
-# RUN gzip -9 /home/idies/*.log && mv /home/idies/*.log.gz /opt/heasoft/. \
-#  && cp -p /home/idies/heasoft-${HEASOFT_VERSION}/Release_Notes* /opt/heasoft/ \
-#  && rm -rf /home/idies/heasoft-${HEASOFT_VERSION}*
-# ## ------------------- ##
 
 
+## ------------------- ##
+## Configure shells... ##
+# also, add a script in env/etc/conda/activate.d, so it runs 
+# when the envirenment is activated
+USER ${user}
+WORKDIR /home/${user}
 
-
-# ## ------------------- ##
-# ## Configure shells... ##
-# # also, add a script in env/etc/conda/activate.d, so it runs 
-# # when the envirenment is activated
-# USER ${sciserver_user}
-# WORKDIR /home/${sciserver_user}
-
-# RUN echo "# Initialize HEASoft environment & caldb \n\
-# export HEADAS=$(ls -d /opt/heasoft/x86_64*) \n\
-# . \$HEADAS/headas-init.sh \n\n\
-# export CALDB=${caldb_root} \n\
-# . \$CALDB/software/tools/caldbinit.sh \n\n\
-# conda activate ${pythonenv} \n\
-# " > /tmp/tmp.sh \
-#  && cat /tmp/tmp.sh >> .bashrc \
-#  && cat /tmp/tmp.sh >> .profile \
-#  && mkdir -p ./miniconda3/envs/${pythonenv}/etc/conda/activate.d \
-#  && head -n -2 /tmp/tmp.sh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/heasoft_init.sh \
-#  \
-#  && echo "# Initialize HEASoft environment & caldb \n\
-# setenv HEADAS $(ls -d /opt/heasoft/x86_64*) \n\
-# source \$HEADAS/headas-init.csh \n\n\
-# setenv CALDB=${caldb_root} \n\
-# source \$CALDB/software/tools/caldbinit.csh \n\n\
-# conda activate ${pythonenv} \n\
-# " > /tmp/tmp.csh \
-#  && cat /tmp/tmp.csh >> .cshrc \
-#  && head -n -2 /tmp/tmp.csh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/heasoft_init.csh
-# ## ------------------- ##
+RUN echo "# Initialize HEASoft environment & caldb \n\
+export HEADAS=/opt/heasoft/ \n\
+source \$HEADAS/headas-init.sh \n\n\
+export CALDB=${headata}/caldb \n\
+source \$CALDB/software/tools/caldbinit.sh \n\n\
+conda activate ${pythonenv} \n\
+" > /tmp/tmp.sh \
+ && cat /tmp/tmp.sh >> .bashrc \
+ && cat /tmp/tmp.sh >> .profile \
+ && mkdir -p ./miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+ && head -n -2 /tmp/tmp.sh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/heasoft_init.sh \
+ \
+ && echo "# Initialize HEASoft environment & caldb \n\
+setenv HEADAS /opt/heasoft/ \n\
+source \$HEADAS/headas-init.csh \n\n\
+setenv CALDB=${headata}/caldb \n\
+source \$CALDB/software/tools/caldbinit.csh \n\n\
+conda activate ${pythonenv} \n\
+" > /tmp/tmp.csh \
+ && cat /tmp/tmp.csh >> .cshrc \
+ && head -n -2 /tmp/tmp.csh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/heasoft_init.csh
+## ------------------- ##
 
 SHELL ["/bin/bash", "--login", "-c"]

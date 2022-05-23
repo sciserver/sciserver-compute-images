@@ -113,7 +113,7 @@ RUN echo -e "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/script
 USER ${user}
 WORKDIR /home/${user}
 
-RUN echo "# Initialize HEASoft environment & caldb \n\
+RUN printf "# Initialize HEASoft environment & caldb \n\
 export HEADAS=/opt/heasoft/ \n\
 source \$HEADAS/headas-init.sh \n\n\
 export CALDB=${headata}/caldb \n\
@@ -125,7 +125,7 @@ conda activate ${pythonenv} \n\
  && mkdir -p ./miniconda3/envs/${pythonenv}/etc/conda/activate.d \
  && head -n -2 /tmp/tmp.sh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/heasoft_init.sh \
  \
- && echo "# Initialize HEASoft environment & caldb \n\
+ && printf "# Initialize HEASoft environment & caldb \n\
 setenv HEADAS /opt/heasoft/ \n\
 source \$HEADAS/headas-init.csh \n\n\
 setenv CALDB=${headata}/caldb \n\

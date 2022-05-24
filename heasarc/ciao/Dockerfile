@@ -8,14 +8,10 @@ ARG pythonenv=ciao
 
 
 
-## ----------------------- ##
-## Create a ciao conda env ##
-USER $user
-
-
 ## ------------------------------ ##
 ## Install the ciao conda package ##
 ## remove xspec modelData and make a link
+USER $user
 RUN mamba create -n ${pythonenv} -y \
   -c https://cxc.cfa.harvard.edu/conda/ciao \
   -c conda-forge \

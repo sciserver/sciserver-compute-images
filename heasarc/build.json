@@ -1,0 +1,27 @@
+{
+    "heasoft": {
+        "version": "6.30.1"
+    },
+    
+    "ciao": {
+        "version": "4.14"
+    },
+    
+    "fermi": {
+        "version": "2.0.8"
+    },
+    
+    "xmmsas": {
+        "version": "20.0.0"
+    },
+    
+    "heasarc": {
+        "version": "0.1"
+    },
+    
+    "sciserver-base": {},
+    
+    "sciserver-jupyter": {},
+    
+    "sciserver-anaconda": {}
+}

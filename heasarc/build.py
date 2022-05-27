@@ -48,15 +48,24 @@ def parse_input(**kwargs):
     return tobuild
     
 
-def build_images(images):
+def build_images(images, dryrun=False):
     """call 'docker build' on each element in images
     
     images: a list of images to build. e.g ['heasoft', 'ciao'].
         Usually the output of parse_input
         
     """
-    logging.debug('The following will be built: ' + (', '.join(images)))
+    logging.debug('The following will be built: ' + (', '.join(images)))    
     
+    # read build.json file for versions and other details
+    jsonfile = 'build.json'
+    if not os.path.exists(jsonfile):
+        logging.error(f'No descriptor file {jsonfile} found. Stopping ...')
+        sys.exit(1)
+    info = json.load(open(jsonfile))
+    
+    
+    # loop through requested images
     for image in images:
         
         logging.debug(f'Working on image {image} ...')
@@ -69,24 +78,12 @@ def build_images(images):
         if folder is None:    
             logging.error(f'No image folder found for {image}')
             sys.exit(1)
-            
-        # do we have a json description file?
-        jsonfile = glob.glob(f'{folder}/*.json')
-        if len(jsonfile) == 0:
-            info = {'image': image, 'version':1.0}
-        elif len(jsonfile) > 1:
-            if f'{folder}/{image}.json' in jsonfile:
-                logging.debug(f'Using {folder}/{image}.json ...')
-                info = json.load(open(f'{folder}/{image}.json'))
-            else:
-                logging.error(f'There are multiple json files in {folder}')
-                sys.exit(1)
-        else:
-            info = json.load(open(jsonfile[0]))
         
-        image_name  = info.get('image', image)
-        image_vers  = info.get('version', '1.0')
-        image_label = info.get('label', f'v{image_vers}')
+        im_info = info.get(image, {'version': '1.0'})
+        
+        image_name  = im_info.get('name', image)
+        image_vers  = im_info.get('version', '1.0')
+        image_label = im_info.get('label', f'v{image_vers}')
         
         # build the image #
         logging.debug(f'\tBuilding {image_name}')
@@ -95,28 +92,32 @@ def build_images(images):
                f'--build-arg', f'version={image_vers}', 
                f'./{folder}']
         logging.debug('\t' + (' '.join(cmd)))
-        out = subprocess.call(cmd)
-        if out: 
-            logging.error('\tError encountered.')
-            sys.exit(1)
+        
+        if not dryrun:
+            out = subprocess.call(cmd)
+            if out: 
+                logging.error('\tError encountered.')
+                sys.exit(1)
         
         # tag the image as latest #
         logging.debug(f'\tBuilding {image_name}')
         cmd = ['docker', 'tag', f'{image_name}:{image_label}', 
                f'{image_name}:latest']
         logging.debug('\t' + (' '.join(cmd)))
-        out = subprocess.call(cmd)
-        if out: 
-            logging.error('\tError encountered.')
-            sys.exit(1)
+        if not dryrun:
+            out = subprocess.call(cmd)
+            if out: 
+                logging.error('\tError encountered.')
+                sys.exit(1)
         
         # remove any dangling images
         cmd = 'docker images -q -f dangling=true | xargs --no-run-if-empty docker rmi -f'
         logging.debug('\t' + cmd)
-        out = subprocess.check_call(cmd, shell=True)
-        if out: 
-            logging.error('\tError encountered.')
-            sys.exit(1)
+        if not dryrun:
+            out = subprocess.check_call(cmd, shell=True)
+            if out: 
+                logging.error('\tError encountered.')
+                sys.exit(1)
     
       
         
@@ -127,6 +128,7 @@ if __name__ == '__main__':
     
     ap = argparse.ArgumentParser()
     ap.add_argument('--verbose', '-v', action='count', default=0)
+    ap.add_argument('--dryrun', action='store_true')
     ap.add_argument('images', nargs='*', help='images to build', default=['heasarc'])
     args = ap.parse_args()
     
@@ -136,6 +138,6 @@ if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO - 10*args.verbose)
     
     images = parse_input(**vars(args))
-    build_images(images)
+    build_images(images, args.dryrun)
     
     

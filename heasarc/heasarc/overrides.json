@@ -3,9 +3,9 @@
     "appUrl": "/wwtstatic/research/"
   },
 
-  "@jupyterlab/docmanager-extension:plugin.jupyterlab-settings": {
+  "@jupyterlab/docmanager-extension:plugin": {
     "defaultViewers": {
-      "markdown": "Markeown Preview"
+      "markdown": "Markdown Preview"
     }
   }
 

@@ -19,15 +19,11 @@ jupyter lab \
     --no-browser \
     --ip=* \
     --notebook-dir=/home/idies/workspace \
-    --NotebookApp.token= \
+    --ServerApp.token= \
     --KernelSpecManager.ensure_native_kernel=False \
-    --NotebookApp.allow_remote_access=True \
-    --NotebookApp.quit_button=False \
-    --NotebookApp.base_url=$1 \
-    \
-    --ServerApp.quit_button=False \
-    --ServerApp.default_url='/lab' \
     --ServerApp.allow_remote_access=True \
+    --ServerApp.quit_button=False \
+    --ServerApp.base_url=$1 \
+    \
+    --LabApp.default_url='/lab/tree/start-page.md' \
     --MultiKernelManager.default_kernel_name='heasoft' \
-    --NotebookApp.default_url='/lab/tree/start-page.md' \
-    --LabApp.default_url='/lab/tree/start-page.md'

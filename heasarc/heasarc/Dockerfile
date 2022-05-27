@@ -96,8 +96,7 @@ RUN jupyter lab build
 
 
 ## copy some setting files ##
-COPY jupyter_notebook_config.py /home/${user}/.jupyter/jupyter_notebook_config.py
-COPY overrides.json /home/$user/miniconda3/envs/$pythonenv/share/jupyter/lab/settings/overrides.json
+COPY overrides.json /home/$user/miniconda3/share/jupyter/lab/settings/overrides.json
 ## ----------------------- ##
 
 
@@ -116,9 +115,7 @@ RUN chmod +x /opt/startup.sh
 RUN ln -s $headata /FTP
 
 # fix permissions
-RUN chown $user:$user /home/${user}/.jupyter/jupyter_notebook_config.py 
-#\
-# && chown -R $user:$user /home/$user/miniconda3/envs
+RUN chown -R $user:$user /home/$user/miniconda3/share/jupyter/lab/settings
 
 
 USER $user

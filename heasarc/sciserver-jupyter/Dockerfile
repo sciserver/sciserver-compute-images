@@ -26,6 +26,7 @@ RUN conda update -y conda \
         mamba=0.22.1 \
         pip \
     && conda clean -y --all \
-    && jupyter kernelspec remove -f python3
+    && jupyter kernelspec remove -f python3 \
+    && rm -rf /home/idies/miniconda3/pkgs/*
 
 COPY startup.sh /opt/startup.sh

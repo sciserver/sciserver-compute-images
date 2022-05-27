@@ -38,7 +38,8 @@ COPY requirements.txt .
 RUN conda create -n $pythonenv python=3.9 --file requirements.txt \
  && conda clean -y --all \
  && conda init \
- && rm requirements.txt 
+ && rm requirements.txt \
+ && rm -rf /home/$user/miniconda3/pkgs/*
 ## ------------------------------ ##
 
 
@@ -74,10 +75,9 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/
  && make install 2>&1 | tee install.log.txt \
  && make clean 2>&1 \
  && gzip -9 *.log.txt && mv *.log.txt.gz /opt/heasoft \
- && /bin/bash -c 'cd /opt/heasoft/; for loop in x86_64*/*; do ln -sf $loop; done' \
  && cd /home/$user/heasoft-${version} \
- && cp -p Xspec/BUILD_DIR/hmakerc /opt/heasoft/bin/ \
- && cp -p Xspec/BUILD_DIR/Makefile-std /opt/heasoft/bin/ \
+ && cp -p Xspec/BUILD_DIR/hmakerc /opt/heasoft/x86_64*/bin/ \
+ && cp -p Xspec/BUILD_DIR/Makefile-std /opt/heasoft/x86_64*/bin/ \
  && mv Release_Notes* /opt/heasoft/ \
  && cd /home/$user && rm -rf /home/$user/heasoft-${version}
 # ------------------------------- ##
@@ -95,8 +95,8 @@ RUN echo -e "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/script
  && mv Xspec.init /opt/heasoft/spectral/manager/ \
  \
  && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData \
- && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/ftools/xstar/data/atdb.fits /opt/heasoft/refdata/ \
- && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/heasim/skyback/torus1006.fits /opt/heasoft/refdata/
+ && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/ftools/xstar/data/atdb.fits /opt/heasoft/x86_64*/refdata/ \
+ && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/heasim/skyback/torus1006.fits /opt/heasoft/x86_64*/refdata/
 ## ---------------- ##
 
 
@@ -104,22 +104,21 @@ RUN echo -e "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/script
 
 ## ------------------- ##
 ## Configure shells... ##
-# also, add a script in env/etc/conda/activate.d, so it runs 
-# when the envirenment is activated
+# also, add init scripts in env/etc/conda/activate.d, so they run
+# when the environment is activated
 USER ${user}
 WORKDIR /home/$user
+ENV HEADAS=/opt/heasoft/x86_64* CALDB=${headata}/caldb
+
 RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && printf "export HEADAS=/opt/heasoft/\nexport CALDB=${headata}/caldb" >> /home/${user}/.bashrc \
- && printf "export HEADAS=/opt/heasoft/\nexport CALDB=${headata}/caldb" >> /home/${user}/.bash_profile \
- && printf "setenv HEADAS=/opt/heasoft/\nsetenv CALDB=${headata}/caldb" >> /home/${user}/.cshrc \
  && cd miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && ln -s /opt/heasoft/headas-init.sh && ln -s /opt/heasoft/headas-init.csh \
+ && ln -s /opt/heasoft/x86_64*/headas-init.sh && ln -s /opt/heasoft/x86_64*/headas-init.csh \
  && ln -s $headata/caldb/software/tools/caldbinit.sh && ln -s $headata/caldb/software/tools/caldbinit.csh \
  \
  \
- && printf "\nconda activate ${pythonenv}\n" >> ~/.bashrc \
- && printf "\nconda activate ${pythonenv}\n" >> ~/.bash_profile \
- && printf "\nconda activate ${pythonenv}\n" >> ~/.cshrc
+ && printf "export HEADAS=`echo $HEADAS`\n. \$HEADAS/headas-init.sh\nconda activate $pythonenv\n" >> ~/.bashrc \
+ && printf "export HEADAS=`echo $HEADAS`\n. \$HEADAS/headas-init.sh\nconda activate $pythonenv\n" >> ~/.bash_profile \
+ && printf "setenv HEADAS `echo $HEADAS`\nsource $HEADAS/headas-init.csh\nconda activate $pythonenv\n" >> ~/.cshrc
 # ------------------- ##
 
-SHELL ["/bin/bash", "--login", "-c"]
+WORKDIR /home/$user

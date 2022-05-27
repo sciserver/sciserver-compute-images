@@ -1,0 +1,12 @@
+{
+  "@wwtelescope/jupyterlab:research": {
+    "appUrl": "/wwtstatic/research/"
+  },
+
+  "@jupyterlab/docmanager-extension:plugin.jupyterlab-settings": {
+    "defaultViewers": {
+      "markdown": "Markeown Preview"
+    }
+  }
+
+}

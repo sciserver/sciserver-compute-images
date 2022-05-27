@@ -13,15 +13,14 @@ USER $user
 
 
 
-
-
 ## ------------------------------------ ##
 ## Install the fermitools conda package ##
 USER $user
 RUN mamba create -n $pythonenv -y -c conda-forge -c fermi \
    fermitools=$version clhep=2.4.4.1 \
    fermipy \
- && conda clean -y --all
+ && conda clean -y --all \
+ && rm -rf /home/$user/miniconda3/pkgs/*
 ## ------------------------------------ ##
 
 # reset 

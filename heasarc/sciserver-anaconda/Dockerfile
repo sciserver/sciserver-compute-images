@@ -1,7 +1,8 @@
 FROM sciserver-jupyter
 
 RUN conda create -y --name py39 python=3.9 anaconda=2021.11 \
-    && conda clean -y --all
+    && conda clean -y --all \
+    && rm -rf /home/idies/miniconda3/pkgs/*
 
 SHELL ["/bin/bash", "--login", "-c"]
 

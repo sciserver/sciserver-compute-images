@@ -75,8 +75,12 @@ def build_images(images):
         if len(jsonfile) == 0:
             info = {'image': image, 'version':1.0}
         elif len(jsonfile) > 1:
-            logging.error(f'There are multiple json files in {folder}')
-            sys.exit(1)
+            if f'{folder}/{image}.json' in jsonfile:
+                logging.debug(f'Using {folder}/{image}.json ...')
+                info = json.load(open(f'{folder}/{image}.json'))
+            else:
+                logging.error(f'There are multiple json files in {folder}')
+                sys.exit(1)
         else:
             info = json.load(open(jsonfile[0]))
         

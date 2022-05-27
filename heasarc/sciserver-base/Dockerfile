@@ -14,8 +14,6 @@ RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime \
         sudo \
         wget \
         curl \
+        vim \
     && rm -rf /var/lib/apt/lists/*
 
-# RUN apt-get update \
-#     && apt-get install -y texlive-full \
-#     && rm -rf /var/lib/apt/lists/*

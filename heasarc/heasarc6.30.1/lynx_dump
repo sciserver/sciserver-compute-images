@@ -1,2 +1,0 @@
-#!/bin/bash
-/opt/heasoft/bin/lynx -dump "$@" && exit 0

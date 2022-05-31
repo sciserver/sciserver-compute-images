@@ -48,7 +48,7 @@ def parse_input(**kwargs):
     return tobuild
     
 
-def build_images(images, dryrun=False):
+def build_images(images, args=None):
     """call 'docker build' on each element in images
     
     images: a list of images to build. e.g ['heasoft', 'ciao'].
@@ -56,6 +56,13 @@ def build_images(images, dryrun=False):
         
     """
     logging.debug('The following will be built: ' + (', '.join(images)))    
+    
+    dryrun  = False
+    version = False 
+    if not args is None:
+        dryrun  = args.dryrun
+        version = args.version
+    
     
     # read build.json file for versions and other details
     jsonfile = 'build.json'
@@ -84,6 +91,9 @@ def build_images(images, dryrun=False):
         image_name  = im_info.get('name', image)
         image_vers  = im_info.get('version', '1.0')
         image_label = im_info.get('label', f'v{image_vers}')
+        if version:
+            print(f'{image:18} : v{image_vers}')
+            continue
         
         # build the image #
         logging.debug(f'\tBuilding {image_name}')
@@ -128,6 +138,7 @@ if __name__ == '__main__':
     
     ap = argparse.ArgumentParser()
     ap.add_argument('--verbose', '-v', action='count', default=0)
+    ap.add_argument('--version', action='store_true')
     ap.add_argument('--dryrun', action='store_true')
     ap.add_argument('images', nargs='*', help='images to build', default=['heasarc'])
     args = ap.parse_args()
@@ -138,6 +149,6 @@ if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO - 10*args.verbose)
     
     images = parse_input(**vars(args))
-    build_images(images, args.dryrun)
+    build_images(images, args)
     
     

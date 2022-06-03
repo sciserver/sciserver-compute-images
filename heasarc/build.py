@@ -96,6 +96,7 @@ def build_images(images, args=None):
             continue
         
         # build the image #
+        # TODO: pass other arguments from json file
         logging.debug(f'\tBuilding {image_name}')
         cmd = ['docker', 'build', '--network=host', '-t', 
                f'{image_name}:{image_label}', 

@@ -108,17 +108,34 @@ RUN echo -e "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/script
 # when the environment is activated
 USER ${user}
 WORKDIR /home/$user
-ENV HEADAS=/opt/heasoft/x86_64* CALDB=${headata}/caldb
+#ENV HEADAS=/opt/heasoft/x86_64* CALDB=${headata}/caldb
 
 RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && cd miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && ln -s /opt/heasoft/x86_64*/headas-init.sh && ln -s /opt/heasoft/x86_64*/headas-init.csh \
- && ln -s $headata/caldb/software/tools/caldbinit.sh && ln -s $headata/caldb/software/tools/caldbinit.csh \
+ && printf "\n\
+export HEADAS=`ls -d /opt/heasoft/x86_64*` \n\
+export CALDB=$headata/caldb \n\
+source \$HEADAS/headas-init.sh \n\
+if [ -d $headata ]; then \n \
+   source \$CALDB/software/tools/caldbinit.sh \n\
+else \n\
+   echo '\\n** HEASARC data Volume was not mounted. Please do that when launching the compute **\\n' \n\
+fi \n\
+" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_heasoft.sh \
  \
+ && printf "\n\
+setenv HEADAS `ls -d /opt/heasoft/x86_64*` \n\
+setenv CALDB $headata/caldb \n\
+source \$HEADAS/headas-init.csh \n\
+if [ -d $headata ]; then \n \
+   source \$CALDB/software/tools/caldbinit.csh \n\
+else \n\
+  echo '\\n** HEASARC data Volume was not mounted. Please do that when launching the compute **\\n' \n\
+fi \n\
+" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_heasoft.csh \
  \
- && printf "export HEADAS=`echo $HEADAS`\n. \$HEADAS/headas-init.sh\nconda activate $pythonenv\n" >> ~/.bashrc \
- && printf "export HEADAS=`echo $HEADAS`\n. \$HEADAS/headas-init.sh\nconda activate $pythonenv\n" >> ~/.bash_profile \
- && printf "setenv HEADAS `echo $HEADAS`\nsource $HEADAS/headas-init.csh\nconda activate $pythonenv\n" >> ~/.cshrc
+ && printf "\nconda activate $pythonenv\n" >> ~/.bashrc \
+ && printf "\nconda activate $pythonenv\n" >> ~/.bash_profile \
+ && printf "\nconda activate $pythonenv\n" >> ~/.cshrc
 # ------------------- ##
 
 WORKDIR /home/$user

@@ -4,7 +4,7 @@ FROM fermi:latest
 ARG version=20.0.0
 ARG heasoft_version=6.30.1
 ARG headata=/home/idies/workspace/headata/FTP
-ARG ccfpath=/FTP/caldb/data/xmm/ccf
+ARG ccfpath=$headata/caldb/data/xmm/ccf
 ARG user=idies
 ARG pythonenv=xmmsas
 ARG pyversion=3.9
@@ -57,13 +57,24 @@ RUN conda run -n $pythonenv pip install --no-cache -r ${xmmsas_dir}/sas_${versio
 ## Configure shells... ##
 # also, add a script in env/etc/conda/activate.d, so it runs 
 # when the envirenment is activated
-RUN printf "\nexport SAS_DIR=$(ls -d ${xmmsas_dir}/xmmsas_*)\nexport SAS_CCFPATH=${ccfpath}" >> .bashrc \
- && printf "\nexport SAS_DIR=$(ls -d ${xmmsas_dir}/xmmsas_*)\nexport SAS_CCFPATH=${ccfpath}" >> .bash_profile \
- && printf "\nsetenv SAS_DIR $(ls -d ${xmmsas_dir}/xmmsas_*)\nsetenv SAS_CCFPATH ${ccfpath}" >> .cshrc \
- && mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && cd miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && ln -s $(ls -d ${xmmsas_dir}/xmmsas_*)/setsas.sh \
- && ln -s $(ls -d ${xmmsas_dir}/xmmsas_*)/setsas.csh
+RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+ && printf "\n\
+export SAS_DIR=`ls -d ${xmmsas_dir}/xmmsas_*` \n\
+export SAS_CCFPATH=${ccfpath} \n\
+source \$SAS_DIR/setsas.sh \n\
+if ! [ -d $headata ]; then \n \
+   echo '\\n** HEASARC data Volume was not mounted. Please do that when launching the compute **\\n' \n\
+fi \n\
+" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_xmmsas.sh \
+ \
+ && printf "\n\
+setenv SAS_DIR `ls -d ${xmmsas_dir}/xmmsas_*` \n\
+setenv SAS_CCFPATH ${ccfpath} \n\
+source \$SAS_DIR/setsas.csh \n\
+if ! [ -d $headata ]; then \n \
+   echo '\\n** HEASARC data Volume was not mounted. Please do that when launching the compute **\\n' \n\
+fi \n\
+" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_xmmsas.csh
 ## ------------------- ##
 
 

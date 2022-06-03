@@ -25,5 +25,5 @@ jupyter lab \
     --ServerApp.quit_button=False \
     --ServerApp.base_url=$1 \
     \
-    --LabApp.default_url='/lab/tree/start-page.md' \
+    --LabApp.default_url='/lab/tree/sciserver_cookbooks/Introduction.md' \
     --MultiKernelManager.default_kernel_name='heasoft' \

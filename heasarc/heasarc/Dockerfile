@@ -123,7 +123,11 @@ USER $user
 
 
 # set landing page #
-COPY start-page.md /home/$user/workspace
+RUN cd /home/$user/workspace \
+ && git clone https://github.com/zoghbi-a/sciserver_cookbooks.git \
+ && cd sciserver_cookbooks \
+ && git checkout az-new-notebooks \
+ && rm -rf .git
 
 # reset shell
 ENV SHELL=/bin/bash

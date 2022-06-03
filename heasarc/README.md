@@ -42,8 +42,7 @@ Updating the images will depend which one is being updated, as follows:
 - `heasoft`: updating the version number in `build.json` is sufficient.
 - `ciao`: The image always downloads and install the latest version at the build time. `build.json` needs to be updated manually to reflect the new version number.
 - `fermi`: similar to `ciao`
-- `xmmsas`: Update the version number in `build.json`, and if an Ubuntu version other than 20.04 is used, `UBUNTU_VERSION` needs to updated in `xmmsas/Dockerfile` (TODO: read automatically from the json file).
-
+- `xmmsas`: Update the version number and `UBUNTU_VERSION` in `build.json`.
 
 
 

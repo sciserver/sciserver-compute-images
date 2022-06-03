@@ -94,13 +94,14 @@ def build_images(images, args=None):
         if version:
             print(f'{image:18} : v{image_vers}')
             continue
+        extra_info = {k:v for k,v in im_info.items() if not k in ['name', 'version', 'label']}
+        extra_args = [i for k,v in extra_info.items() for i in ['--build-arg', f'{k}={v}']]
         
         # build the image #
-        # TODO: pass other arguments from json file
         logging.debug(f'\tBuilding {image_name}')
         cmd = ['docker', 'build', '--network=host', '-t', 
                f'{image_name}:{image_label}', 
-               f'--build-arg', f'version={image_vers}', 
+               f'--build-arg', f'version={image_vers}'] + extra_args + [ 
                f'./{folder}']
         logging.debug('\t' + (' '.join(cmd)))
         
@@ -143,6 +144,9 @@ if __name__ == '__main__':
     ap.add_argument('--dryrun', action='store_true')
     ap.add_argument('images', nargs='*', help='images to build', default=['heasarc'])
     args = ap.parse_args()
+    
+    # force verbose=1 if we have --dryrun
+    if args.dryrun: args.verbose = 1
     
 
     logging.basicConfig(format='%(asctime)s|%(levelname)5s| %(message)s',

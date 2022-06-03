@@ -12,7 +12,8 @@
     },
     
     "xmmsas": {
-        "version": "20.0.0"
+        "version": "20.0.0",
+        "UBUNTU_VERSION": "20.04"
     },
     
     "heasarc": {

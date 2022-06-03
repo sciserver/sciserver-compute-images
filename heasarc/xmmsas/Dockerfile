@@ -9,7 +9,7 @@ ARG user=idies
 ARG pythonenv=xmmsas
 ARG pyversion=3.9
 ARG xmmsas_dir=/opt/xmmsas
-ENV UBUNTU_VERSION=20.04
+ARG UBUNTU_VERSION=20.04
 
 
 

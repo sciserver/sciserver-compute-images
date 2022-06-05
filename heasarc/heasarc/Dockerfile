@@ -49,21 +49,30 @@ RUN mamba install -y -n heasoft ipykernel && mamba clean -y --all \
  && mamba install -y -n xmmsas ipykernel && mamba clean -y --all \
  && mamba run -n xmmsas python -m ipykernel install --user --name=xmmsas --display-name='(xmmsas)' \
  && rm -rf /home/$user/miniconda3/pkgs/*
+ 
+## when a kernel is started in a notebook, it doesn't load the scripts in /env/etc/conda/activate.d
+## so, the following a fix for that
+COPY kernel.json .
+RUN cp kernel.json /home/$user/.local/share/jupyter/kernels/heasoft/kernel.json \
+ && sed 's/heasoft/ciao/'   kernel.json > /home/$user/.local/share/jupyter/kernels/ciao/kernel.json \
+ && sed 's/heasoft/fermi/'  kernel.json > /home/$user/.local/share/jupyter/kernels/fermi/kernel.json \
+ && sed 's/heasoft/xmmsas/' kernel.json > /home/$user/.local/share/jupyter/kernels/xmmsas/kernel.json \
+ && rm kernel.json
 ## ---------------------------- ##
 
 
 ## ------------------------------ ##
 ## Install extra python libraries ##
-ADD requirements.txt requirements.txt
-RUN mamba install -y -c conda-forge --file requirements.txt && mamba clean -y --all && rm requirements.txt \
- && rm -rf /home/$user/miniconda3/pkgs/*
+# ADD requirements.txt requirements.txt
+# RUN mamba install -y -c conda-forge --file requirements.txt && mamba clean -y --all && rm requirements.txt \
+#  && rm -rf /home/$user/miniconda3/pkgs/*
 ## ------------------------------ ##
 
 
 ## ---------------------------------- ##
 ## install other jupyterlab extension ##
-RUN mamba install -y -c conda-forge jupyterlab-git && mamba clean -y --all \
- && rm -rf /home/$user/miniconda3/pkgs/*
+# RUN mamba install -y -c conda-forge jupyterlab-git && mamba clean -y --all \
+#  && rm -rf /home/$user/miniconda3/pkgs/*
 ## ---------------------------------- ##
 
 
@@ -123,11 +132,11 @@ USER $user
 
 
 # set landing page #
-RUN cd /home/$user/workspace \
- && git clone https://github.com/zoghbi-a/sciserver_cookbooks.git \
- && cd sciserver_cookbooks \
- && git checkout az-new-notebooks \
- && rm -rf .git
+# RUN cd /home/$user/workspace \
+#  && git clone https://github.com/zoghbi-a/sciserver_cookbooks.git \
+#  && cd sciserver_cookbooks \
+#  && git checkout az-new-notebooks \
+#  && rm -rf .git
 
 # reset shell
 ENV SHELL=/bin/bash

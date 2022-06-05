@@ -45,6 +45,16 @@ Updating the images will depend which one is being updated, as follows:
 - `xmmsas`: Update the version number and `UBUNTU_VERSION` in `build.json`.
 
 
+### Testing The Images
+`docker run --rm -it -p 8885:8888 -v $PWD/test:/opt/test heasarc /opt/test/run_tests.sh`
+
+
+
+#### Local testing
+The main different for local testing is the availability of the data. First, 
+
+#### Testing on Sciserver
+
 
 ### Description Of The Images
 In the folloing, each image starts with the image before it.

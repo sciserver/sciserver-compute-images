@@ -79,6 +79,14 @@ RUN mamba install -y ipykernel && mamba clean -y --all \
 SHELL ["/home/idies/miniconda3/bin/conda", "run", "-n", "heasoft", "--no-capture-output", "/bin/bash", "-c"]
 RUN jupyter kernelspec uninstall -f python3
 
+# fix issue of kernels not initializing correctly
+COPY kernel.json .
+RUN cp kernel.json /home/idies/.local/share/jupyter/kernels/heasoft/kernel.json \
+ && sed 's/heasoft/ciao/'   kernel.json >/home/idies/.local/share/jupyter/kernels/ciao/kernel.json \
+ && sed 's/heasoft/fermi/'  kernel.json >/home/idies/.local/share/jupyter/kernels/fermi/kernel.json \
+ && sed 's/heasoft/xmmsas/' kernel.json >/home/idies/.local/share/jupyter/kernels/xmmsas/kernel.json \
+ && rm kernel.json
+
 # copy some setting files
 COPY jupyter_notebook_config.py /home/${sciserver_user}/.jupyter/jupyter_notebook_config.py
 COPY overrides.json /home/idies/miniconda3/envs/heasoft/share/jupyter/lab/settings/overrides.json
@@ -119,12 +127,24 @@ RUN ln -s /home/${sciserver_user}/workspace/headata/FTP /FTP
 ## ---------------------- ##
 
 
+## update heasoftpy ##
+RUN wget https://github.com/HEASARC/heasoftpy/archive/refs/heads/develop.zip \
+ && unzip develop.zip && rm -f develop.zip \
+ && cd heasoftpy-develop \
+ && python setup.py build \
+ && cp build/bin/* /opt/heasoft/heacore/x86_64-*/bin/ \
+ && cp -r build/lib/heasoftpy/* /opt/heasoft/x86_64-*/lib/python/heasoftpy/ \
+ && cp build/syspfiles/* /opt/heasoft/x86_64-*/syspfiles/ \
+ && cd .. && rm -rf heasoftpy-develop 
+## ---------------- ##
+
 
 ## ---------------------------------------- ##
 ## rebuild jupyterlab to activate extension ##
 USER ${sciserver_user}
 RUN jupyter lab build
 ## ---------------------------------------- ##
+
 
 
 # reset shell

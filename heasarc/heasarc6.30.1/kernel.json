@@ -1,0 +1,10 @@
+{
+    "argv": [
+        "bash", "-c", "conda run -n heasoft python -m ipykernel_launcher -f '{connection_file}'"
+    ],
+    "display_name": "(heasoft)",
+    "language": "python",
+    "metadata": {
+        "debugger": true
+    }
+}

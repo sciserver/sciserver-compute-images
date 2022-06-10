@@ -188,3 +188,9 @@ RUN (source activate py39 \
 
 RUN mkdir -p /home/idies/.jupyter/lab/user-settings/\@jupyterlab/notebook-extension \
     && echo '{"recordTiming": true}' >> /home/idies/.jupyter/lab/user-settings/\@jupyterlab/notebook-extension/tracker.jupyterlab-settings
+
+#Make sure py39 is the preferred kernel
+RUN (source activate py39 \
+    && jupyter notebook --generate-config \
+    && echo "c.MultiKernelManager.default_kernel_name = 'py39'" >> /home/idies/.jupyter/jupyter_notebook_config.py \
+)

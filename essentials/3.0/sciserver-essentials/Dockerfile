@@ -170,3 +170,21 @@ RUN git clone https://github.com/sciserver/SciScript-R.git \
     && rm -rf /home/idies/SciServer*.tar.gz \
     && rm /home/idies/keystone.token
 
+USER root
+RUN apt-get update \
+    && apt-get install -y \
+        graphviz \
+    && rm -rf /var/lib/apt/lists/*
+USER idies
+
+RUN (source activate py39 \
+    && mamba install -y -c conda-forge \
+        ipycytoscape \
+        python-graphviz \
+        pydot \
+        jupyterlab_execute_time \
+    && mamba clean -y --all \
+)
+
+RUN mkdir -p /home/idies/.jupyter/lab/user-settings/\@jupyterlab/notebook-extension \
+    && echo '{"recordTiming": true}' >> /home/idies/.jupyter/lab/user-settings/\@jupyterlab/notebook-extension/tracker.jupyterlab-settings

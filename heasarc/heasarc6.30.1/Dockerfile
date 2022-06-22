@@ -50,7 +50,7 @@ RUN mamba install -y jupyter jupyterlab && mamba clean -y --all
 ## ------------------------ ##
 ## Install WWT labextension ##
 ## NODE_OPTIONS is needed to avoid build failure
-ENV NODE_OPTIONS=--openssl-legacy-provider
+#ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN mamba install -y -c conda-forge nodejs=17 \
  && mamba clean -y --all \
  && jupyter labextension install @wwtelescope/jupyterlab
@@ -137,6 +137,11 @@ RUN wget https://github.com/HEASARC/heasoftpy/archive/refs/heads/develop.zip \
  && cp build/syspfiles/* /opt/heasoft/x86_64-*/syspfiles/ \
  && cd .. && rm -rf heasoftpy-develop 
 ## ---------------- ##
+
+
+## fix permissions in user directory ##
+USER root
+RUN chown -R $sciserver_user:$sciserver_group /home/$sciserver_user
 
 
 ## ---------------------------------------- ##

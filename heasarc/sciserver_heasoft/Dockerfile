@@ -130,10 +130,10 @@ RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
 export HEADAS=`ls -d /opt/heasoft/x86_64*` \n\
 export CALDB=$caldb_root \n\
 source \$HEADAS/headas-init.sh \n\
-if [ -d $caldb_root ]; then \n \
+if [ -d $caldb_root ]; then \n\
    source \$CALDB/software/tools/caldbinit.sh \n\
 else \n\
-   echo '\\n** HEASARC data Volume was not mounted. Please do that when launching the compute **\\n' \n\
+   echo '\\n** HEASARC data Volume was not mounted. Please do that when creating the container. **\\n' \n\
 fi \n\
 " > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_heasoft.sh \
  \
@@ -141,10 +141,10 @@ fi \n\
 setenv HEADAS `ls -d /opt/heasoft/x86_64*` \n\
 setenv CALDB $caldb_root \n\
 source \$HEADAS/headas-init.csh \n\
-if [ -d $caldb_root ]; then \n \
+if [ -d $caldb_root ]; then \n\
    source \$CALDB/software/tools/caldbinit.csh \n\
 else \n\
-  echo '\\n** HEASARC data Volume was not mounted. Please do that when launching the compute **\\n' \n\
+  echo '\\n** HEASARC data Volume was not mounted. Please do that when creating the container. **\\n' \n\
 fi \n\
 " > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_heasoft.csh \
  \

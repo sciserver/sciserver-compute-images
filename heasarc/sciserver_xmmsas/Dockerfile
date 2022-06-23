@@ -66,8 +66,8 @@ RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
 export SAS_DIR=`ls -d ${xmmsas_dir}/xmmsas_*` \n\
 export SAS_CCFPATH=${xmmsas_ccfpath} \n\
 source \$SAS_DIR/setsas.sh \n\
-if ! [ -d $xmmsas_ccfpath ]; then \n \
-   echo '\\n** HEASARC data Volume that includes CCF_PATH was not mounted. Please do that when launching the compute **\\n' \n\
+if ! [ -d $xmmsas_ccfpath ]; then \n\
+   echo '\\n** HEASARC data Volume that includes CCF_PATH was not mounted. Please do that when creating the container. **\\n' \n\
 fi \n\
 " > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_xmmsas.sh \
  \
@@ -75,8 +75,8 @@ fi \n\
 setenv SAS_DIR `ls -d ${xmmsas_dir}/xmmsas_*` \n\
 setenv SAS_CCFPATH ${xmmsas_ccfpath} \n\
 source \$SAS_DIR/setsas.csh \n\
-if ! [ -d $xmmsas_ccfpath ]; then \n \
-   echo '\\n** HEASARC data Volume that includes CCF_PATH was not mounted. Please do that when launching the compute **\\n' \n\
+if ! [ -d $xmmsas_ccfpath ]; then \n\
+   echo '\\n** HEASARC data Volume that includes CCF_PATH was not mounted. Please do that when creating the container. **\\n' \n\
 fi \n\
 " > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_xmmsas.csh
 ## ------------------- ##

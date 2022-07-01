@@ -165,4 +165,4 @@ CMD ["/bin/bash"]
 # reset shell
 USER ${sciserver_user}
 ENV SHELL="/bin/bash"
-SHELL ["/bin/bash"]
+SHELL ["/bin/bash", "-c"]

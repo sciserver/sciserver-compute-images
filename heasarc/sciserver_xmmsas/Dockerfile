@@ -61,20 +61,22 @@ RUN conda run -n $pythonenv pip install --no-cache -r ${xmmsas_dir}/sas_${xmmsas
 ## Configure shells... ##
 # also, add a script in env/etc/conda/activate.d, so it runs 
 # when the envirenment is activated
-RUN echo "# Initialize XMMSAS environment \n\
-export SAS_DIR=$(ls -d ${xmmsas_dir}/xmmsas_*) \n\
-alias sasinit=\". \$SAS_DIR/setsas.sh\" \n\n\
+RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+ && printf "\n\
+export SAS_DIR=`ls -d ${xmmsas_dir}/xmmsas_*` \n\
 export SAS_CCFPATH=${xmmsas_ccfpath} \n\
-" > /tmp/tmp.sh \
- && cat /tmp/tmp.sh >> .bashrc \
- && cat /tmp/tmp.sh >> .profile \
- && mkdir -p ./miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && echo "sasinit" >> ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/xmmsas_init.sh \
+source \$SAS_DIR/setsas.sh \n\
+if ! [ -d $xmmsas_ccfpath ]; then \n\
+   echo '\\n** HEASARC data Volume that includes CCF_PATH was not mounted. Please do that when creating the container. **\\n' \n\
+fi \n\
+" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_xmmsas.sh \
  \
- && echo "# Initialize XMMSAS environment \n\
-setenv SAS_DIR $(ls -d ${xmmsas_dir}/xmmsas_*) \n\
-alias sasinit \"source \$SAS_DIR/setsas.csh\" \n\n\
+ && printf "\n\
+setenv SAS_DIR `ls -d ${xmmsas_dir}/xmmsas_*` \n\
 setenv SAS_CCFPATH ${xmmsas_ccfpath} \n\
-" >> .cshrc \
- && echo "sasinit" >> ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/xmmsas_init.csh
+source \$SAS_DIR/setsas.csh \n\
+if ! [ -d $xmmsas_ccfpath ]; then \n\
+   echo '\\n** HEASARC data Volume that includes CCF_PATH was not mounted. Please do that when creating the container. **\\n' \n\
+fi \n\
+" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_xmmsas.csh
 ## ------------------- ##

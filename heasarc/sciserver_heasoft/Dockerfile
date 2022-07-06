@@ -125,25 +125,29 @@ RUN gzip -9 /home/idies/*.log && mv /home/idies/*.log.gz /opt/heasoft/. \
 USER ${sciserver_user}
 WORKDIR /home/${sciserver_user}
 
-RUN echo "# Initialize HEASoft environment & caldb \n\
-export HEADAS=$(ls -d /opt/heasoft/x86_64*) \n\
-. \$HEADAS/headas-init.sh \n\n\
-export CALDB=${caldb_root} \n\
-. \$CALDB/software/tools/caldbinit.sh \n\n\
-conda activate ${pythonenv} \n\
-" > /tmp/tmp.sh \
- && cat /tmp/tmp.sh >> .bashrc \
- && cat /tmp/tmp.sh >> .profile \
- && mkdir -p ./miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && head -n -2 /tmp/tmp.sh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/heasoft_init.sh \
+RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+ && printf "\n\
+export HEADAS=`ls -d /opt/heasoft/x86_64*` \n\
+export CALDB=$caldb_root \n\
+source \$HEADAS/headas-init.sh \n\
+if [ -d $caldb_root ]; then \n\
+   source \$CALDB/software/tools/caldbinit.sh \n\
+else \n\
+   echo '\\n** HEASARC data Volume was not mounted. Please do that when creating the container. **\\n' \n\
+fi \n\
+" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_heasoft.sh \
  \
- && echo "# Initialize HEASoft environment & caldb \n\
-setenv HEADAS $(ls -d /opt/heasoft/x86_64*) \n\
-source \$HEADAS/headas-init.csh \n\n\
-setenv CALDB=${caldb_root} \n\
-source \$CALDB/software/tools/caldbinit.csh \n\n\
-conda activate ${pythonenv} \n\
-" > /tmp/tmp.csh \
- && cat /tmp/tmp.csh >> .cshrc \
- && head -n -2 /tmp/tmp.csh > ./miniconda3/envs/${pythonenv}/etc/conda/activate.d/heasoft_init.csh
-## ------------------- ##
+ && printf "\n\
+setenv HEADAS `ls -d /opt/heasoft/x86_64*` \n\
+setenv CALDB $caldb_root \n\
+source \$HEADAS/headas-init.csh \n\
+if [ -d $caldb_root ]; then \n\
+   source \$CALDB/software/tools/caldbinit.csh \n\
+else \n\
+  echo '\\n** HEASARC data Volume was not mounted. Please do that when creating the container. **\\n' \n\
+fi \n\
+" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_heasoft.csh \
+ \
+ && printf "\nconda activate $pythonenv\n" >> ~/.bashrc \
+ && printf "\nconda activate $pythonenv\n" >> ~/.bash_profile \
+ && printf "\nconda activate $pythonenv\n" >> ~/.cshrc

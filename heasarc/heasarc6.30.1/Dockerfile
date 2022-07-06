@@ -50,7 +50,7 @@ RUN mamba install -y jupyter jupyterlab && mamba clean -y --all
 ## ------------------------ ##
 ## Install WWT labextension ##
 ## NODE_OPTIONS is needed to avoid build failure
-ENV NODE_OPTIONS=--openssl-legacy-provider
+#ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN mamba install -y -c conda-forge nodejs=17 \
  && mamba clean -y --all \
  && jupyter labextension install @wwtelescope/jupyterlab
@@ -78,6 +78,7 @@ RUN mamba install -y ipykernel && mamba clean -y --all \
 # remove python3 kernel from jupyter, and make heasoft the default
 SHELL ["/home/idies/miniconda3/bin/conda", "run", "-n", "heasoft", "--no-capture-output", "/bin/bash", "-c"]
 RUN jupyter kernelspec uninstall -f python3
+
 
 # fix issue of kernels not initializing correctly
 COPY kernel.json .
@@ -146,7 +147,22 @@ RUN jupyter lab build
 ## ---------------------------------------- ##
 
 
+## fix permissions in user directory ##
+USER root
+RUN chown -R $sciserver_user:$sciserver_group /home/$sciserver_user
+
+# add entry.sh as an entrypoint script, which calls .bashrc before execution; 
+# Needed for running batch jobs.
+# When the container is run without starting jupyter-lab (i.e. without calling /opt/startup.sh), 
+# all commands are executed though this entry.sh script, which sets the default conda environment to heasoft
+# e.g. 'docker run --rm heasarc which python' should give: /home/idies/miniconda3/envs/heasoft/bin/python
+COPY entry.sh /opt/entry.sh
+RUN chmod +x /opt/entry.sh
+ENTRYPOINT ["/opt/entry.sh"]
+CMD ["/bin/bash"]
+
 
 # reset shell
-ENV SHELL=/bin/bash
+USER ${sciserver_user}
+ENV SHELL="/bin/bash"
 SHELL ["/bin/bash", "-c"]

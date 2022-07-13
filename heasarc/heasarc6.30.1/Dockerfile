@@ -1,4 +1,4 @@
-FROM sciserver_xmmsas:v6.30.1.4.14.2.0.8.20.0.0
+FROM sciserver_xmmsas:v6.30.1.4.14.2.2.0.20.0.0
 
 ARG heasoft_version=6.30.1
 ARG xmmsas_version=20.0.0

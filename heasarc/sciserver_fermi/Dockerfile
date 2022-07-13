@@ -1,9 +1,9 @@
 FROM sciserver_ciao:v6.30.1.4.14
 
-ARG version=6.30.1.4.14.2.0.8
+ARG version=6.30.1.4.14.2.2.0
 ARG heasoft_version=6.30.1
 ARG ciao_version=4.14
-ARG fermi_version=2.0.8
+ARG fermi_version=2.2.0
 ARG sciserver_user=idies
 ARG pythonenv=fermi
 
@@ -23,7 +23,7 @@ RUN conda create -n $pythonenv python=3 \
 
 ## ------------------------------------ ##
 ## Install the fermitools conda package ##
-RUN mamba install -n $pythonenv -y -c conda-forge -c fermi fermitools python=3 clhep=2.4.4.1 \
+RUN mamba install -n $pythonenv -y -c conda-forge -c fermi fermitools clhep python=3 \ 
  && conda clean -y --all
 
 # .. and fermipy pip

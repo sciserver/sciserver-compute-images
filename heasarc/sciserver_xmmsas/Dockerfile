@@ -1,9 +1,9 @@
-FROM sciserver_fermi:v6.30.1.4.14.2.0.8
+FROM sciserver_fermi:v6.30.1.4.14.2.2.0
 
-ARG version=6.30.1.4.14.2.0.8.20.0.0
+ARG version=6.30.1.4.14.2.2.0.20.0.0
 ARG heasoft_version=6.30.1
 ARG ciao_version=4.14
-ARG fermi_version=2.0.8
+ARG fermi_version=2.2.0
 ARG xmmsas_version=20.0.0
 ARG xmmsas_dir=/opt/xmmsas
 ARG xmmsas_ccfpath=/FTP/caldb/data/xmm/ccf

@@ -329,7 +329,7 @@ class ImageBuilder:
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--verbose', '-v', action='count', default=0)
-    ap.add_argument('--repo', default='containers.repo.sciserver.org/compute-images')
+    ap.add_argument('--repo', default='compute.repo.sciserver.org')
     ap.add_argument('--ref', default='HEAD^')
     ap.add_argument('--root', default=os.getcwd())
     ap.add_argument('--ignore', nargs='+', default=[])

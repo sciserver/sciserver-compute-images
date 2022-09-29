@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 RUN useradd -m idies \
     && mkdir /home/idies/workspace \
@@ -14,6 +14,15 @@ RUN ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime \
         sudo \
         wget \
         curl \
+        git \
         vim \
-    && rm -rf /var/lib/apt/lists/*
+        htop \
+        locales \
+    && rm -rf /var/lib/apt/lists/* \
+    && locale-gen "en_US.UTF-8" \
+    && update-locale "LANG=en_US.UTF-8"
 
+RUN apt-get update \
+    && apt-get install -y texlive-full \
+    && rm -rf /var/lib/apt/lists/*
+    

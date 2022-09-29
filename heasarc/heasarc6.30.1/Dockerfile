@@ -163,7 +163,8 @@ ENTRYPOINT ["/opt/entry.sh"]
 CMD ["/bin/bash"]
 
 
-# reset shell
+# reset shell and install jupyter in the base env
 USER ${sciserver_user}
 ENV SHELL="/bin/bash"
 SHELL ["/bin/bash", "-c"]
+RUN mamba install -y jupyter && mamba clean -y --all

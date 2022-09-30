@@ -100,7 +100,7 @@ RUN cd /home/${sciserver_user}/heasoft-${HEASOFT_VERSION}/BUILD_DIR/ \
 # Tweak Xspec settings for a no-X11 environment
 # add xspec and xstar model data from the data location in ~/workspace/headata/FTP
 COPY Xspec.init .
-RUN echo "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/scripts/global_customize.tcl \
+RUN printf "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/scripts/global_customize.tcl \
  && mv Xspec.init /opt/heasoft/spectral/manager/ \
  \
  && ln -sf /home/${sciserver_user}/workspace/headata/FTP/software/lheasoft/lheasoft${HEASOFT_VERSION}/heasoft-${HEASOFT_VERSION}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData \

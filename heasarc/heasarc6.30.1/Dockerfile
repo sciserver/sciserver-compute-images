@@ -60,19 +60,19 @@ RUN mamba install -y -c conda-forge nodejs=17 \
 
 ## ---------------------------- ##
 ## add conda envs to Jupyterlab ##
-RUN mamba install -y ipykernel && mamba clean -y --all \
+RUN mamba install -y ipykernel jupyter && mamba clean -y --all \
  && python -m ipykernel install --user --name=heasoft --display-name='(Heasoft)'
 
 SHELL ["/home/idies/miniconda3/bin/conda", "run", "-n", "ciao", "--no-capture-output", "/bin/bash", "-c"]
-RUN mamba install -y ipykernel && mamba clean -y --all \
+RUN mamba install -y ipykernel jupyter && mamba clean -y --all \
  && python -m ipykernel install --user --name=ciao --display-name='(Ciao)'
 
 SHELL ["/home/idies/miniconda3/bin/conda", "run", "-n", "fermi", "--no-capture-output", "/bin/bash", "-c"]
-RUN mamba install -y ipykernel && mamba clean -y --all \
+RUN mamba install -y ipykernel jupyter && mamba clean -y --all \
  && python -m ipykernel install --user --name=fermi --display-name='(Fermi)'
 
 SHELL ["/home/idies/miniconda3/bin/conda", "run", "-n", "xmmsas", "--no-capture-output", "/bin/bash", "-c"]
-RUN mamba install -y ipykernel && mamba clean -y --all \
+RUN mamba install -y ipykernel jupyter && mamba clean -y --all \
  && python -m ipykernel install --user --name=xmmsas --display-name='(XMM-SAS)'
 
 # remove python3 kernel from jupyter, and make heasoft the default
@@ -128,15 +128,16 @@ RUN ln -s /home/${sciserver_user}/workspace/headata/FTP /FTP
 ## ---------------------- ##
 
 
-## update heasoftpy ##
-RUN wget https://github.com/HEASARC/heasoftpy/archive/refs/heads/develop.zip \
- && unzip develop.zip && rm -f develop.zip \
- && cd heasoftpy-develop \
+## update heasoftpy; pre-ixpe change ##
+ARG SHA=eb15ee3f568e0b837e85720bd855c191cb65cbbe
+RUN wget https://github.com/HEASARC/heasoftpy/archive/$SHA.zip \
+ && unzip $SHA.zip && rm -f $SHA.zip \
+ && cd heasoftpy-$SHA \
  && python setup.py build \
  && cp build/bin/* /opt/heasoft/heacore/x86_64-*/bin/ \
  && cp -r build/lib/heasoftpy/* /opt/heasoft/x86_64-*/lib/python/heasoftpy/ \
  && cp build/syspfiles/* /opt/heasoft/x86_64-*/syspfiles/ \
- && cd .. && rm -rf heasoftpy-develop 
+ && cd .. && rm -rf heasoftpy-$SHA 
 ## ---------------- ##
 
 
@@ -162,7 +163,8 @@ ENTRYPOINT ["/opt/entry.sh"]
 CMD ["/bin/bash"]
 
 
-# reset shell
+# reset shell and install jupyter in the base env
 USER ${sciserver_user}
 ENV SHELL="/bin/bash"
 SHELL ["/bin/bash", "-c"]
+RUN mamba install -y jupyter && mamba clean -y --all

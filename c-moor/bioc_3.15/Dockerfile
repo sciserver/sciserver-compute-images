@@ -1,19 +1,8 @@
 FROM containers.repo.sciserver.org/bioconductor:3.15
 
-RUN apt-get update \
-    && apt-get install -y \
-        libgdal-dev \
-        libproj-dev \
-        libgeos-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 USER idies
 
 WORKDIR /home/idies
-
-RUN Rscript -e "BiocManager::install('DESeq2')"
-
-RUN Rscript -e "install.packages('learnr')"
 
 # add cell RNA-seq tools
 RUN Rscript -e \

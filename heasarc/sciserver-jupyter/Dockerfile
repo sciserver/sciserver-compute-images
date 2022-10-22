@@ -20,10 +20,11 @@ RUN curl -L https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-x86
 
 ENV PATH /home/idies/miniconda3/bin:$PATH
 
-RUN conda install -y -c conda-forge \
+RUN conda install -y -c conda-forge mamba=0.24.0
+
+RUN mamba install -y -c conda-forge \
         jupyter=1.0.0 \
         jupyterlab=3.4.3 \
-        mamba=0.24.0 \
         pip=22.1.2 \
     && conda clean -y --all \
     && jupyter kernelspec remove -f python3 \

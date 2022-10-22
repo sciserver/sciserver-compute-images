@@ -14,7 +14,6 @@ import sys
 IMAGES = [
     'sciserver-base',
     'sciserver-jupyter',
-    'sciserver-anaconda',
     'heasoft',
     'ciao',
     'fermi',

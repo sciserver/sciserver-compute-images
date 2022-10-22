@@ -4,7 +4,8 @@
     },
     
     "ciao": {
-        "version": "4.14"
+        "version": "4.14",
+        "heasoft_version": "6.30.1"
     },
     
     "fermi": {
@@ -20,9 +21,11 @@
         "version": "0.1"
     },
     
-    "sciserver-base": {},
+    "sciserver-jupyter": {
+        "version": "3.0"
+    },
     
-    "sciserver-jupyter": {},
-    
-    "sciserver-anaconda": {}
+    "sciserver-base": {
+        "version": "3.0"
+    }
 }

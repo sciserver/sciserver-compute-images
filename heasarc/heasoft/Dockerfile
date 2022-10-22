@@ -1,4 +1,4 @@
-FROM sciserver-anaconda:latest
+FROM sciserver-jupyter:latest
 
 ARG version=6.30.1
 ARG headata=/home/idies/workspace/headata/FTP
@@ -14,8 +14,8 @@ RUN apt-get update && apt-get -y install \
     gfortran \
     git \
     g++ \
-    libncurses5-dev \
-    libreadline6-dev \
+    libncurses-dev \
+    libreadline-dev \
     make \
     ncurses-dev \
     perl-modules \
@@ -23,7 +23,7 @@ RUN apt-get update && apt-get -y install \
     wget \
     xorg-dev \
     libcurl4 \
-    libssl1.1 \
+    libssl3 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -35,11 +35,15 @@ USER ${user}
 ## install heasoftpy dependencies ##
 ## these will need to be done automatically in the future
 COPY requirements.txt .
-RUN conda create -n $pythonenv python=3.9 --file requirements.txt \
+RUN conda create -y -n ${pythonenv} python=3.9 --file requirements.txt \
  && conda clean -y --all \
- && conda init \
- && rm requirements.txt \
- && rm -rf /home/$user/miniconda3/pkgs/*
+ && rm -rf miniconda3/pkgs/* requirements.txt
+ 
+# needed to get conda to work properly
+ENV BASH_ENV=~/.bashrc
+ENV SHELL=/bin/bash
+RUN echo "source /home/${user}/miniconda3/bin/activate ${pythonenv}" > ~/.bashrc
+SHELL ["/bin/bash", "-c"]
 ## ------------------------------ ##
 
 
@@ -58,11 +62,10 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/
  && tar xzvf heasoft-${version}${heasoft_tarfile_suffix}.tar.gz \
  && rm -f heasoft-${version}${heasoft_tarfile_suffix}.tar.gz \
  \
+ ## Remove large files. We'll link them later
  && cd heasoft-${version} \
  && rm -f ftools/xstar/data/atdb.fits \
  && rm -f heasim/skyback/torus1006.fits \
- && rm -f Xspec/src/help/XspecManual-12.12.1.tar.gz \
- && rm -rf ftools/xstar/manual/*manual*.{ps,pdf,gz} \
  \
  \
 ## ------------------------------- ##
@@ -90,13 +93,12 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/
 
 # Tweak Xspec settings for a no-X11 environment
 # add xspec and xstar model data from the data location in $headata
-COPY Xspec.init .
-RUN echo -e "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/scripts/global_customize.tcl \
- && mv Xspec.init /opt/heasoft/spectral/manager/ \
- \
- && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData \
- && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/ftools/xstar/data/atdb.fits /opt/heasoft/x86_64*/refdata/ \
- && ln -sf $headata/software/lheasoft/lheasoft${version}/heasoft-${version}/heasim/skyback/torus1006.fits /opt/heasoft/x86_64*/refdata/
+RUN printf "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/scripts/global_customize.tcl \
+ && HEAsrc=$headata/software/lheasoft/lheasoft${version}/heasoft-${version} \
+ && refdata=`ls -d /opt/heasoft/x86_64*/refdata` \
+ && ln -sf ${HEAsrc}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData \
+ && ln -sf ${HEAsrc}/ftools/xstar/data/atdb.fits ${refdata} \
+ && ln -sf ${HEAsrc}/heasim/skyback/torus1006.fits ${refdata}
 ## ---------------- ##
 
 
@@ -108,34 +110,13 @@ RUN echo -e "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/script
 # when the environment is activated
 USER ${user}
 WORKDIR /home/$user
-#ENV HEADAS=/opt/heasoft/x86_64* CALDB=${headata}/caldb
 
-RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && printf "\n\
-export HEADAS=`ls -d /opt/heasoft/x86_64*` \n\
-export CALDB=$headata/caldb \n\
-source \$HEADAS/headas-init.sh \n\
-if [ -d $headata ]; then \n \
-   source \$CALDB/software/tools/caldbinit.sh \n\
-else \n\
-   echo '\\n** HEASARC data Volume was not mounted. Please do that when launching the compute **\\n' \n\
-fi \n\
-" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_heasoft.sh \
+COPY heasoft-setup.sh .
+RUN bash heasoft-setup.sh ${headata} \
+ && mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+ && mv activate*sh miniconda3/envs/${pythonenv}/etc/conda/activate.d \
  \
- && printf "\n\
-setenv HEADAS `ls -d /opt/heasoft/x86_64*` \n\
-setenv CALDB $headata/caldb \n\
-source \$HEADAS/headas-init.csh \n\
-if [ -d $headata ]; then \n \
-   source \$CALDB/software/tools/caldbinit.csh \n\
-else \n\
-  echo '\\n** HEASARC data Volume was not mounted. Please do that when launching the compute **\\n' \n\
-fi \n\
-" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_heasoft.csh \
- \
- && printf "\nconda activate $pythonenv\n" >> ~/.bashrc \
- && printf "\nconda activate $pythonenv\n" >> ~/.bash_profile \
- && printf "\nconda activate $pythonenv\n" >> ~/.cshrc
-# ------------------- ##
-
-WORKDIR /home/$user
+ && printf "source activate ${pythonenv}" > ~/.bashrc \
+ && printf "source activate ${pythonenv}" >> ~/.cshrc \
+ && rm heasoft-setup.sh
+## ------------------- ##

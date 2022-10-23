@@ -1,15 +1,9 @@
 FROM ciao:latest
 
-ARG version=2.0.8
+ARG version=2.2.0
 ARG headata=/home/idies/workspace/headata/FTP
 ARG user=idies
 ARG pythonenv=fermi
-
-
-## ------------------------ ##
-## Create a fermi conda env ##
-USER $user
-## ------------------------ ##
 
 
 
@@ -17,7 +11,7 @@ USER $user
 ## Install the fermitools conda package ##
 USER $user
 RUN mamba create -n $pythonenv -y -c conda-forge -c fermi \
-   fermitools=$version clhep=2.4.4.1 \
+   fermitools=$version \
    fermipy \
  && conda clean -y --all \
  && rm -rf /home/$user/miniconda3/pkgs/*

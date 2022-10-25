@@ -37,8 +37,8 @@ echo
 
 test_dir=`dirname $0`
 for image in heasoft ciao fermi xmmsas; do
-
-    if [ $image=="1" ]; then
+    
+    if [ ${!image} == "1" ]; then
         echo
         echo "Testing the ($image) environment"
         echo "----------------------------------"

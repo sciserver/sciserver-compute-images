@@ -67,7 +67,7 @@ class TestHeasoft:
 
     def test_fhelp_call(self):
         """Test a call to fhelp works"""
-        if os.system('fhelp fdump'):
+        if os.system('fhelp fdump pager=cat'):
             raise HeasoftError('fhelp failed!')
         
         
@@ -130,4 +130,4 @@ if __name__ == '__main__':
     tester.test_fhelp_call()
     tester.test_rxte_pipeline()
     
-    testet._cleanup()
+    tester._cleanup()

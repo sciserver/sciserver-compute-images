@@ -8,8 +8,8 @@ tqdm
 umap-learn
 scikit-image
 pandas
+seaborn
 specutils
 aplpy
-pygments==2.6.1
-pywwt
-
+pygments
+jupyterlab-git

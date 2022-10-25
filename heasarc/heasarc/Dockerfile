@@ -1,6 +1,5 @@
 FROM xmmsas:latest
 
-ARG heasoft_version=6.30.1
 ARG headata=/home/idies/workspace/headata/FTP
 ARG user=idies
 ARG pythonenv=heasoft
@@ -13,6 +12,7 @@ RUN apt-get update && apt-get -y install \
         zip unzip \
         ghostscript \
         vim \
+        screen \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 ## ----------------------- ##
@@ -29,7 +29,8 @@ WORKDIR /home/$user
 
 ## ------------------------ ##
 ## Install WWT labextension ##
-RUN conda run -n $pythonenv jupyter labextension install @wwtelescope/jupyterlab
+RUN jupyter labextension install @wwtelescope/jupyterlab && \
+    pip install pywwt wwt_kernel_data_relay
 ## ------------------------ ##
 
 
@@ -50,9 +51,9 @@ RUN mamba install -y -n heasoft ipykernel && mamba clean -y --all \
  && mamba run -n xmmsas python -m ipykernel install --user --name=xmmsas --display-name='(xmmsas)' \
  && rm -rf /home/$user/miniconda3/pkgs/*
  
-## when a kernel is started in a notebook, it doesn't load the scripts in /env/etc/conda/activate.d
-## so, the following a fix for that
-COPY kernel.json .
+## when a kernel is started in a notebook, it doesn't load the scripts in /env/etc/conda/activate.d.
+## The following is a fix for that
+COPY --chown=$user kernel.json .
 RUN cp kernel.json /home/$user/.local/share/jupyter/kernels/heasoft/kernel.json \
  && sed 's/heasoft/ciao/'   kernel.json > /home/$user/.local/share/jupyter/kernels/ciao/kernel.json \
  && sed 's/heasoft/fermi/'  kernel.json > /home/$user/.local/share/jupyter/kernels/fermi/kernel.json \
@@ -63,17 +64,18 @@ RUN cp kernel.json /home/$user/.local/share/jupyter/kernels/heasoft/kernel.json 
 
 ## ------------------------------ ##
 ## Install extra python libraries ##
-# ADD requirements.txt requirements.txt
-# RUN mamba install -y -c conda-forge --file requirements.txt && mamba clean -y --all && rm requirements.txt \
-#  && rm -rf /home/$user/miniconda3/pkgs/*
+ADD requirements.txt requirements.txt
+RUN mamba install -y -c conda-forge --file requirements.txt && mamba clean -y --all && rm requirements.txt \
+ && rm -rf /home/$user/miniconda3/pkgs/*
 ## ------------------------------ ##
 
 
 ## ---------------------------------- ##
 ## install other jupyterlab extension ##
-# RUN mamba install -y -c conda-forge jupyterlab-git && mamba clean -y --all \
-#  && rm -rf /home/$user/miniconda3/pkgs/*
+RUN mamba install -y -c conda-forge jupyterlab-git && mamba clean -y --all \
+ && rm -rf /home/$user/miniconda3/pkgs/*
 ## ---------------------------------- ##
+
 
 
 # ## ---------------------- ##
@@ -88,9 +90,7 @@ RUN cp kernel.json /home/$user/.local/share/jupyter/kernels/heasoft/kernel.json 
 
 # RUN chgrp ${sciserver_group} /usr/local/bin/* \
 #  && chmod +rx /opt/startup.sh \
-#  && chgrp ${sciserver_group} /home/${sciserver_user}/.jupyter/jupyter_notebook_config.py \
-#  && chmod g+rw /home/${sciserver_user}/.jupyter/jupyter_notebook_config.py
-
+#  && chown ${user}:${user} /home/${user}/.jupyter/jupyter_notebook_config.py
 
 # ## ---------------------- ##
 
@@ -124,19 +124,18 @@ RUN chmod +x /opt/startup.sh
 RUN ln -s $headata /FTP
 
 # fix permissions
-RUN chown -R $user:$user /home/$user/miniconda3/share/jupyter/lab/settings
+RUN chown -R $user:$user /home/$user/miniconda3/share/jupyter/lab/settings /home/${user}/.jupyter
 
 
 USER $user
 ## -------------------------- ##
 
 
-# set landing page #
-# RUN cd /home/$user/workspace \
-#  && git clone https://github.com/zoghbi-a/sciserver_cookbooks.git \
-#  && cd sciserver_cookbooks \
-#  && git checkout az-new-notebooks \
-#  && rm -rf .git
+# Get tutorial notebooks #
+# the selection of langing page is done in startup.sh
+RUN cd /home/$user/workspace \
+ && git clone https://github.com/zoghbi-a/sciserver_cookbooks.git \
+ && cd sciserver_cookbooks \
+ && git checkout az-new-notebooks \
+ && rm -rf .git
 
-# reset shell
-ENV SHELL=/bin/bash

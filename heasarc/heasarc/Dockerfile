@@ -70,13 +70,6 @@ RUN mamba install -y -c conda-forge --file requirements.txt && mamba clean -y --
 ## ------------------------------ ##
 
 
-## ---------------------------------- ##
-## install other jupyterlab extension ##
-RUN mamba install -y -c conda-forge jupyterlab-git && mamba clean -y --all \
- && rm -rf /home/$user/miniconda3/pkgs/*
-## ---------------------------------- ##
-
-
 
 # ## ---------------------- ##
 # ## Useful files and tasks ##
@@ -139,3 +132,16 @@ RUN cd /home/$user/workspace \
  && git checkout az-new-notebooks \
  && rm -rf .git
 
+## Get the latest heasoftpy ##
+USER root
+RUN chown $user:$user -R /opt/heasoft
+USER $user
+ARG SHA=a39808e22b50f17879c2fa8355735a966746c760
+RUN wget https://github.com/HEASARC/heasoftpy/archive/$SHA.zip \
+ && unzip $SHA.zip && rm -f $SHA.zip \
+ && cd heasoftpy-$SHA \
+ && python setup.py build \
+ && cp -r build/lib/heasoftpy/* /opt/heasoft/x86_64-*/lib/python/heasoftpy/ \
+ && cd .. && rm -rf heasoftpy-$SHA 
+
+## ---------------- ##

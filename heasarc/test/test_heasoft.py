@@ -2,7 +2,6 @@
 import os
 import sys
 import glob
-from astropy.io import fits as pyfits
 
 
 class HeasoftError(Exception):
@@ -14,16 +13,7 @@ class TestHeasoft:
     
     def __init__(cls):
         """setting up"""
-        
-        cls.rxte_basedir = ('/home/idies/workspace/headata/'
-                            'FTP/rxte/data/archive')
-        cls.rxte_obsid   = '80001-01-01-10'
-        cls.rxte_outdir  = f'tmp.{cls.rxte_obsid}'
-        
-        os.system(f'mkdir -p {cls.rxte_outdir}')
-        
-    def _cleanup(cls):
-        os.system(f'rm -rf {cls.rxte_outdir}')
+        pass
     
     def test_conda_env(self):
         """Test we are in heasoft conda env"""
@@ -38,11 +28,9 @@ class TestHeasoft:
     def test_env(self):
         """Test envirenment vairables are set"""
 
-        if not 'HEADAS' in os.environ:
-            raise HeasoftError('The environmental vairable HEADAS is not defined')
-
-        if not 'CALDB' in os.environ:
-            raise HeasoftError('The environmental vairable CALDB is not defined')
+        for env in ['HEADAS', 'CALDB']:
+            if not env in os.environ:
+                raise HeasoftError(f'The environmental variable {env} is not defined')
         
         
     def test_pyxspec(self):
@@ -76,9 +64,9 @@ class TestHeasoft:
         
         import heasoftpy as hsp
         
-        basedir = self.rxte_basedir 
-        obsid   = self.rxte_obsid
-        outdir  = self.rxte_outdir
+        basedir = '/home/idies/workspace/headata/FTP/rxte/data/archive'
+        obsid   = '80001-01-01-10'
+        outdir  = f'/tmp/tmp.{obsid}'
         obsdir  = f'{basedir}/AO{obsid[0]}/P{obsid[0:5]}/{obsid}'
                 
         result = hsp.pcaprepobsid(indir=obsdir, outdir=outdir, 
@@ -113,8 +101,6 @@ class TestHeasoft:
             raise HeasoftError('pcaextlc2 in test_rxte_pipeline failed!\n' + 
                                '\n'.join(result.output))
     
-        with pyfits.open(os.path.join(outdir,'example.lc'), memmap=False) as hdul:
-            lc=hdul[1].data
     
 
 
@@ -130,4 +116,3 @@ if __name__ == '__main__':
     tester.test_fhelp_call()
     tester.test_rxte_pipeline()
     
-    tester._cleanup()

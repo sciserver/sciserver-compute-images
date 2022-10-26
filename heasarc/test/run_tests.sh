@@ -50,7 +50,7 @@ for image in heasoft ciao fermi xmmsas; do
             exit 1
         fi
         if python $test_dir/test_$image.py; then
-            printf "Tests for ($image) passed successfully"
+            printf "Tests for ($image) passed successfully\n"
         else
             printf "** ERROR: Tests for ($image) failed.\n"
             exit 1

@@ -134,7 +134,7 @@ RUN cd /home/$user/workspace \
 
 ## Get the latest heasoftpy ##
 USER root
-RUN chown $user:$user -R /opt/heasoft
+RUN chown $user:$user -R /opt/heasoft /home/$user
 USER $user
 ARG SHA=a39808e22b50f17879c2fa8355735a966746c760
 RUN wget https://github.com/HEASARC/heasoftpy/archive/$SHA.zip \

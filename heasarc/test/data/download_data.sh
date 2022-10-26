@@ -47,7 +47,11 @@ if [ ! -d $dataDir ]; then
 fi
 
 
-
+# -- Some fermi data -- ##
+dataFile="https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/data/dataPreparation/L1506091032539665347F73_PH00.fits"
+if [ ! -e L1506091032539665347F73_PH00.fits ]; then
+    wget $dataFile
+fi
 
 # ## -- xmm data for xmmsas -- ##
 # dataDir="FTP/xmm/data/rev0/0123700101"
@@ -66,9 +70,3 @@ fi
 #     wget —progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks https://heasarc.gsfc.nasa.gov/$dataDir/
 # fi
 
-
-# # -- Some fermi data -- ##
-# dataFile="https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/data/dataPreparation/L1506091032539665347F73_PH00.fits"
-# if [ ! -e L1506091032539665347F73_PH00.fits ]; then
-#     wget $dataFile
-# fi

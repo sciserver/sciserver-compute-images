@@ -18,31 +18,31 @@ fi
 ## -- xte data for heasoft(py) -- ##
 dataDir="FTP/rxte/data/archive/AO8/P80001/80001-01-01-10"
 if [ ! -d $dataDir ]; then
-    wget —progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks  https://heasarc.gsfc.nasa.gov/$dataDir/
+    wget --progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks  https://heasarc.gsfc.nasa.gov/$dataDir/
 fi
 
 # ## -- caldb data for xte -- ##
 dataDir="FTP/caldb/data/xte/pca"
 if [ ! -d $dataDir ]; then
-    wget —progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks  https://heasarc.gsfc.nasa.gov/$dataDir/
+    wget --progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks  https://heasarc.gsfc.nasa.gov/$dataDir/
 fi
 
 
 # ## -- chandra data for ciao -- ##
 dataDir="FTP/chandra/data/byobsid/5/9805"
 if [ ! -d $dataDir ]; then
-    wget —progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks https://heasarc.gsfc.nasa.gov/$dataDir/
+    wget --progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks https://heasarc.gsfc.nasa.gov/$dataDir/
 fi
 
 ## -- caldb data for chandra -- ##
 dataDir="FTP/caldb/docs/chandra"
 if [ ! -d $dataDir ]; then
-    wget —progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks https://heasarc.gsfc.nasa.gov/$dataDir/
+    wget --progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks https://heasarc.gsfc.nasa.gov/$dataDir/
 fi
 dataDir="FTP/caldb/data/chandra"
 if [ ! -d $dataDir ]; then
     for s in default/ acis/det_gain/ acis/evtsplt/ acis/grade/ acis/subpix/ acis/key.config acis/caldb.indx; do
-        wget —progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks https://heasarc.gsfc.nasa.gov/$dataDir/$s
+        wget --progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks https://heasarc.gsfc.nasa.gov/$dataDir/$s
     done
 fi
 
@@ -57,7 +57,7 @@ fi
 ## -- xmm data for xmmsas -- ##
 dataDir="FTP/xmm/data/rev0/0123700101"
 if [ ! -d $dataDir ]; then
-    wget —progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -X $dataDir/PPS,$dataDir/4XMM,$dataDir/om_mosaic/ -erobots=off --retr-symlinks https://heasarc.gsfc.nasa.gov/$dataDir/
+    wget --progress=bar -nH --no-check-certificate --cut-dirs=0 -r -l0 -c -N -np -R 'index*' -X $dataDir/PPS,$dataDir/4XMM,$dataDir/om_mosaic/ -erobots=off --retr-symlinks https://heasarc.gsfc.nasa.gov/$dataDir/
 fi
 
 dataDir="FTP/caldb/data/xmm/ccf"

@@ -116,9 +116,6 @@ RUN chmod +x /opt/startup.sh
 # create symlink for Hesarc data volume
 RUN ln -s $headata /FTP
 
-# fix permissions
-RUN chown -R $user:$user /home/$user/miniconda3/share/jupyter/lab/settings /home/${user}/.jupyter
-
 
 USER $user
 ## -------------------------- ##
@@ -132,16 +129,8 @@ RUN cd /home/$user/workspace \
  && git checkout az-new-notebooks \
  && rm -rf .git
 
-## Get the latest heasoftpy ##
+## Fix permissions ##
 USER root
 RUN chown $user:$user -R /opt/heasoft /home/$user
 USER $user
-ARG SHA=a39808e22b50f17879c2fa8355735a966746c760
-RUN wget https://github.com/HEASARC/heasoftpy/archive/$SHA.zip \
- && unzip $SHA.zip && rm -f $SHA.zip \
- && cd heasoftpy-$SHA \
- && python setup.py build \
- && cp -r build/lib/heasoftpy/* /opt/heasoft/x86_64-*/lib/python/heasoftpy/ \
- && cd .. && rm -rf heasoftpy-$SHA 
-
-## ---------------- ##
+## --------------- ##

@@ -1,7 +1,7 @@
 FROM heasoft:latest
 
 ARG version=4.14
-ARG heasoft_version=6.30.1
+ARG heasoft_version=6.31
 ARG headata=/home/idies/workspace/headata/FTP
 ARG user=idies
 ARG pythonenv=ciao
@@ -12,9 +12,9 @@ ARG pythonenv=ciao
 ## Install the ciao conda package ##
 ## remove xspec modelData and make a link
 USER $user
-RUN mamba create -n ${pythonenv} -y \
+RUN mamba create -n ${pythonenv} -y -c conda-forge \
   -c https://cxc.cfa.harvard.edu/conda/ciao \
-  ciao sherpa ciao-contrib marx \
+  ciao=${version} sherpa ciao-contrib marx \
   \
  && conda clean -y --all \
  && rm -rf /home/$user/miniconda3/pkgs/* \

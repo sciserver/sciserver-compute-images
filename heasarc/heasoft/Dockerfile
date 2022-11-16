@@ -1,6 +1,6 @@
 FROM sciserver-jupyter:latest
 
-ARG version=6.30.1
+ARG version=6.31
 ARG headata=/home/idies/workspace/headata/FTP
 ARG user=idies
 ARG pythonenv=heasoft

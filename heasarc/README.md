@@ -6,11 +6,10 @@ the SciServer help desk.
 ### Overview 
 The hierarchy of the images is as follows:
 
-  sciserver-base -> sciserver-jupyter -> sciserver-anaconda -> heasoft -> ciao -> fermi -> xmmsas -> heasarc
-  
-In the final `heasarc` image, there are 4 environments from heasarc plus the `py39` which is created in `sciserver-anaconda` as a general python environment.
- 
-The 4 `heasarc` conda environments are: `heasoft` (default), `ciao`, `fermi` and `xmmsas`.
+  sciserver-base -> sciserver-jupyter -> heasoft -> ciao -> fermi -> xmmsas -> heasarc
+   
+In the final `heasarc` image, there are 4 conda environments are: `heasoft` (default), `ciao`, `fermi` and `xmmsas`.
+Jupyterlab and related tools are installed in the heasarc/Dockerfile inside the `heasoft` conda environment.
 
 The data folder is expected to be mounted to `/home/idies/workspace/headata/FTP`. A link to that folder is also made in `/FTP`.
 
@@ -21,7 +20,7 @@ To build the full stack of images, run:
 To build a specifc image, say `fermi`:
 `./build.py fermi`
 
-This will build parent images. In this case: `sciserver-base`, `sciserver-jupyter`, `sciserver-anaconda`, `heasoft`, `ciao` and  `fermi`.
+This will build parent images. In this case: `sciserver-base`, `sciserver-jupyter`, `heasoft`, `ciao` and  `fermi`, following the hierarchy mentioned above.
 
 
 
@@ -36,24 +35,30 @@ where:
 
 
 ### Updating The Images
-The `build.py` script reads the image names and version from `build.json`. 
-Updating the images will depend which one is being updated, as follows:
+The `build.py` script reads the image names and version from `build.json`.
+So to update any of the software packages, just change the version number in `build.json`.
 
-- `heasoft`: updating the version number in `build.json` is sufficient.
-- `ciao`: The image always downloads and install the latest version at the build time. `build.json` needs to be updated manually to reflect the new version number.
-- `fermi`: similar to `ciao`
-- `xmmsas`: Update the version number and `UBUNTU_VERSION` in `build.json`.
+Note that for `sciserver-base`, `sciserver-jupyter`, changing the version number does not change anything if the docker images are not changed. The numbers are here to keep track of the starting images in sciserver/essentials/
 
 
 ### Testing The Images
-`docker run --rm -it -p 8885:8888 -v $PWD/test:/opt/test heasarc /opt/test/run_tests.sh`
-
-
+The tests/ folder contains some simple tests to check the environments have been setup correctly. Testing will depend on whether it is done locally or on sciserer.
 
 #### Local testing
-The main different for local testing is the availability of the data. First, 
+The main different for local testing is the availability of the data. First, run the script in `tests/data/download_data.sh` to download the data needed for testing to `tests/data/FTP`. This FTP folder can then be mounted when running the test:
+
+```sh
+docker run --rm -it -p 8888:8888 -v $PWD/test:/opt/test -v ${PWD}/tests/data/FTP/:/home/idies/workspace/headata/FTP  heasarc /opt/test/run_tests.sh
+```
 
 #### Testing on Sciserver
+When testing on sciserver, the HEASRC data volume should be mounted when creating the container, then:
+```sh
+# starting from inside tests/ folder
+cd data/; ln /FTP FTP; cd ..
+bash run_tests.sh
+```
+
 
 
 ### Description Of The Images
@@ -70,9 +75,6 @@ Starts from Ubuntu v20.04, creates `idies` user and install some base linux tool
 - Installs nodejs, miniconda3, jupyter and jupyterlab
 - Exposes port 8888 and adds a basic `startup.sh` script that launches jupyterlab
 
-
-#### sciserver-anaconda:
-Creates a `py39` conda environment, with standard anaconda packages.
 
 
 #### heasoft

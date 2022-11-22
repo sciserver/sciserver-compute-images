@@ -18,6 +18,7 @@ RUN Rscript -e \
 
 RUN Rscript -e \
     "pkgs_biocintro <- c('SummarizedExperiment', 'UCLouvain-CBIO/rWSBIM1207', 'hexbin', 'patchwork', 'gridExtra', 'tidySummarizedExperiment'); \
-    pkgs_pg2022 <- c('rebook', 'DropletTestFiles', 'EnsDb.Hsapiens.v86', 'mbkmeans', 'dendextend', 'apcluster', 'dynamicTreeCut', 'celldex', 'SingleR', 'GSEABase', 'AUCell', 'org.Mm.eg.db', 'GO.db', 'TENxPBMCData', 'MouseGastrulationData', 'TSCAN', 'slingshot', 'tradeSeq');"
+    pkgs_pg2022 <- c('rebook', 'DropletTestFiles', 'EnsDb.Hsapiens.v86', 'mbkmeans', 'dendextend', 'apcluster', 'dynamicTreeCut', 'celldex', 'SingleR', 'GSEABase', 'AUCell', 'org.Mm.eg.db', 'GO.db', 'TENxPBMCData', 'MouseGastrulationData', 'TSCAN', 'slingshot', 'tradeSeq'); \
+    BiocManager::install(c(pkgs_biocintro, pkgs_pg2022));"
 
 USER root

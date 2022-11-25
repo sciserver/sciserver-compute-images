@@ -71,24 +71,6 @@ RUN mamba install -y -c conda-forge --file requirements.txt && mamba clean -y --
 
 
 
-# ## ---------------------- ##
-# ## Useful files and tasks ##
-# USER root
-
-# COPY link_data /usr/local/bin/
-# COPY lynx_dump /usr/local/bin/
-# COPY pdump /usr/local/bin/
-# COPY sciversions /usr/local/bin/
-# COPY startup.sh /opt/startup.sh
-
-# RUN chgrp ${sciserver_group} /usr/local/bin/* \
-#  && chmod +rx /opt/startup.sh \
-#  && chown ${user}:${user} /home/${user}/.jupyter/jupyter_notebook_config.py
-
-# ## ---------------------- ##
-
-
-
 ## ---------------------------------------- ##
 ## rebuild jupyterlab to activate extension ##
 RUN jupyter lab build
@@ -134,3 +116,15 @@ USER root
 RUN chown $user:$user -R /opt/heasoft /home/$user
 USER $user
 ## --------------- ##
+
+# add entry.sh as an entrypoint script, which calls .bashrc before execution; 
+# Needed for running batch jobs.
+# When the container is run without starting jupyter-lab (i.e. without calling /opt/startup.sh), 
+# all commands are executed though this entry.sh script, which sets the default conda environment to heasoft
+# e.g. 'docker run --rm heasarc which python' should give: /home/idies/miniconda3/envs/heasoft/bin/python
+USER root
+COPY entry.sh /opt/entry.sh
+RUN chmod +x /opt/entry.sh
+ENTRYPOINT ["/opt/entry.sh"]
+CMD ["/bin/bash"]
+USER $user

@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+"""
+
+Description:
+------------
+A python script for building docker images on sciserver.
+
+"""
+
 import argparse
 import glob
 import subprocess

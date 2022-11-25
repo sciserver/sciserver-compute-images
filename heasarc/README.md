@@ -1,4 +1,4 @@
-
+### Introduction
 These are the Dockerfiles to create the HEASARC@SciServer environment.  For questions,
 please see the HEASARC help desk at https://heasarc.gsfc.nasa.gov/cgi-bin/Feedback or
 the SciServer help desk.
@@ -26,10 +26,10 @@ This will build parent images. In this case: `sciserver-base`, `sciserver-jupyte
 
 ### Run The Image
 To run the image:
-`docker run --rm -it -p 8888:8888 heasarc -v /data/location/FTP:/FTP /opt/startup.sh`
+`docker run --rm -it -p 8888:8888 heasarc -v /data/location/FTP:/home/idies/workspace/headata/FTP /opt/startup.sh`
 
 where:
-- `-v /data/location/FTP:/FTP` mounts a local `/data/location/FTP` location to `/FTP` inside the container. 
+- `-v /data/location/FTP:/home/idies/workspace/headata/FTP` mounts a local `/data/location/FTP` location to `/home/idies/workspace/headata/FTP` inside the container. 
 - `/opt/startup.sh` is the script that launches jupyterlab in port 8888 by default. 
 - `8888:8888` means the local 8888 port is mapped to the 8888 port of the conatiner. So the jupyter server should be available in the local machine at: `https://localhost:8888/lab`
 
@@ -68,7 +68,7 @@ In the case of the versioned `heasarc` images, each image starts with the one be
 with `latest` tag, rather than tracking individual versions.
 
 #### sciserver-base:
-Starts from Ubuntu v20.04, creates `idies` user and install some base linux tools
+Starts from Ubuntu v22.04, creates `idies` user and install some base linux tools
 
 
 #### sciserver-jupyter:
@@ -116,4 +116,10 @@ This is the final image that will be used by the enduser.
 - Clone sciserver_cookbooks git repo, and setup the default landing page.
 
 
+### Development:
+The code in the docker files was mostly developed by Ed Sabol and updated by
+Abdu Zoghbi.
 
+
+---
+Last updated: 2022/11/23 by Abdu Zoghbi.

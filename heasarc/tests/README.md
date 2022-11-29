@@ -1,16 +1,19 @@
 
 To run the tests on the heasarc image that is already built, run as, e.g., :
+```sh
 
-    docker run --rm -it -p 8888:8888 -v ${PWD}:/home/idies/test -v ${PWD}/data/FTP/:/home/idies/workspace/headata/FTP heasarc:latest /opt/startup.sh
-
+docker run --rm -it -p 8888:8888 -v ${PWD}:/home/idies/test -v ${PWD}/data/FTP/:/home/idies/workspace/headata/FTP heasarc:latest /opt/startup.sh
+```
 and then point your browser at the URL it will give you, e.g.,
 
 https://127.0.0.1:8888/lab
 
 From the terminal, run the test scripts:
 
-   idies:~> cd test
-   (python3.8) idies@idies:~/test$  bash -i test_all.sh
+```sh
+cd test
+bash -i test_all.sh
+```
 
 Then the 'bash -i' is important, since it causes the shell to source the 
 .bashrc that makes it possible to use conda inside the script for switching

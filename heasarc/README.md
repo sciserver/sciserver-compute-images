@@ -62,7 +62,7 @@ bash run_tests.sh
 
 
 ### Description Of The Images
-In the folloing, each image starts with the image before it.
+In the following, each image starts with the image before it.
 
 In the case of the versioned `heasarc` images, each image starts with the one before it
 with `latest` tag, rather than tracking individual versions.

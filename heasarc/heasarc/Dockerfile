@@ -36,30 +36,13 @@ RUN jupyter labextension install @wwtelescope/jupyterlab && \
 
 
 
-## ---------------------------- ##
-## add conda envs to Jupyterlab ##
-RUN mamba install -y -n heasoft ipykernel && mamba clean -y --all \
- && mamba run -n heasoft python -m ipykernel install --user --name=heasoft --display-name='(heasoft)' \
- \
- && mamba install -y -n ciao ipykernel && mamba clean -y --all \
- && mamba run -n ciao python -m ipykernel install --user --name=ciao --display-name='(ciao)' \
- \
- && mamba install -y -n fermi ipykernel && mamba clean -y --all \
- && mamba run -n fermi python -m ipykernel install --user --name=fermi --display-name='(fermi)' \
- \
- && mamba install -y -n xmmsas ipykernel && mamba clean -y --all \
- && mamba run -n xmmsas python -m ipykernel install --user --name=xmmsas --display-name='(xmmsas)' \
- && rm -rf /home/$user/miniconda3/pkgs/*
- 
-## when a kernel is started in a notebook, it doesn't load the scripts in /env/etc/conda/activate.d.
-## The following is a fix for that
-COPY --chown=$user kernel.json .
-RUN cp kernel.json /home/$user/.local/share/jupyter/kernels/heasoft/kernel.json \
- && sed 's/heasoft/ciao/'   kernel.json > /home/$user/.local/share/jupyter/kernels/ciao/kernel.json \
- && sed 's/heasoft/fermi/'  kernel.json > /home/$user/.local/share/jupyter/kernels/fermi/kernel.json \
- && sed 's/heasoft/xmmsas/' kernel.json > /home/$user/.local/share/jupyter/kernels/xmmsas/kernel.json \
- && rm kernel.json
-## ---------------------------- ##
+## ------------------------------ ##
+## A few additions to the kernels ##
+COPY --chown=$user kernel.json kernel-additions.sh ./
+RUN bash kernel-additions.sh && \
+    rm kernel.json kernel-additions.sh && \ 
+    mamba clean -y --all && rm -rf /home/$user/miniconda3/pkgs/*
+## ------------------------------ ##
 
 
 ## ------------------------------ ##

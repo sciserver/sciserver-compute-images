@@ -9,7 +9,7 @@ import glob
 app = FastAPI()
 
 port_maps = {'': {'port': 9000, 'proc': 0}}
-timeout = 20
+timeout = 240
 
 def html_msg(msg):
     return f'''

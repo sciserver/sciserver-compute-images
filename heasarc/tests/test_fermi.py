@@ -53,8 +53,8 @@ class TestFermi:
         """Test gtselect"""
         fname = 'data/L1506091032539665347F73_PH00.fits'
         if not os.path.exists(fname):
-            os.system(('wget https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/data/'
-                      f'dataPreparation/L1506091032539665347F73_PH00.fits -o {fname}'))
+            os.system(('wget -q https://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/data/'
+                      f'dataPreparation/L1506091032539665347F73_PH00.fits -O {fname}'))
         
         os.system('rm -f /tmp/tmp.fermi.fits > /dev/null 2>&1')
         cmd = (f'gtselect evclass=128 evtype=3 infile={fname} outfile=/tmp/tmp_fermi.fits '

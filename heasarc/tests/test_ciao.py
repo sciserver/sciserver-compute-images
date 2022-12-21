@@ -62,8 +62,8 @@ class TestCiao:
     def test_ciao_pipeline(self):
         """Test a simple data reduction/extraction routine"""
         
-        os.system('rm -r /tmp/repro >/dev/null 2>&1')
-        os.system('cp -r /home/idies/workspace/headata/FTP/chandra/data/byobsid/5/9805 /tmp/')
+        os.system('rm -r /tmp/repro /tmp/9805 >/dev/null 2>&1')
+        os.system('cp -rL /home/idies/workspace/headata/FTP/chandra/data/byobsid/5/9805 /tmp/')
         if os.system('chandra_repro /tmp/9805 /tmp/repro'):
             raise CiaoError('chandra_repro failed!')
         os.system('rm -r /tmp/repro >/dev/null 2>&1')

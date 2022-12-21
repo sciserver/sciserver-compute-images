@@ -12,9 +12,10 @@ ARG pythonenv=ciao
 ## Install the ciao conda package ##
 ## remove xspec modelData and make a link
 USER $user
+# note that numpy=1.24 breaks some tasks, so force 1.23 until ciao fixes it.
 RUN mamba create -n ${pythonenv} -y -c conda-forge \
   -c https://cxc.cfa.harvard.edu/conda/ciao \
-  ciao=${version} sherpa ciao-contrib marx \
+  ciao=${version} sherpa ciao-contrib marx numpy=1.23 \
   \
  && conda clean -y --all \
  && rm -rf /home/$user/miniconda3/pkgs/* \

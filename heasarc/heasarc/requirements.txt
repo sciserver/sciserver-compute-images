@@ -1,0 +1,15 @@
+ipykernel
+wurlitzer
+pyvo
+scikit-learn
+matplotlib
+healpy
+tqdm
+umap-learn
+scikit-image
+pandas
+seaborn
+specutils
+aplpy
+pygments
+jupyterlab-git

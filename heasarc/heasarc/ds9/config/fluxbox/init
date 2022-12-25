@@ -1,0 +1,6 @@
+session.menuFile: /etc/X11/fluxbox/fluxbox-menu
+session.keyFile: /etc/X11/fluxbox/keys
+session.styleFile: /usr/share/fluxbox/styles//ubuntu-light
+session.configVersion:  13
+session.screen0.toolbar.widthPercent: 0
+session.screen0.toolbar.tools: prevwindow, nextwindow

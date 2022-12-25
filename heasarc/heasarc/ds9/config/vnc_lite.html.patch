@@ -1,0 +1,35 @@
+--- vnc_lite.html	2022-11-17 21:17:43.707004000 -0500
++++ vnc_lite.html	2022-11-17 21:18:09.273945000 -0500
+@@ -132,15 +132,13 @@
+             return defaultValue;
+         }
+
+-        document.getElementById('sendCtrlAltDelButton')
+-            .onclick = sendCtrlAltDel;
+
+         // Read parameters specified in the URL query string
+         // By default, use the host and port of server that served this file
+         const host = readQueryVariable('host', window.location.hostname);
+         let port = readQueryVariable('port', window.location.port);
+         const password = readQueryVariable('password');
+-        const path = readQueryVariable('path', 'websockify');
++        const path = readQueryVariable('path', window.location.pathname.replace(/[^/]*$/, '').substring(1) + 'websockify');
+
+         // | | |         | | |
+         // | | | Connect | | |
+@@ -173,14 +173,13 @@
+
+         // Set parameters that can be changed on an active connection
+         rfb.viewOnly = readQueryVariable('view_only', false);
+-        rfb.scaleViewport = readQueryVariable('scale', false);
++        rfb.scaleViewport = readQueryVariable('scale', true);
+     </script>
+ </head>
+
+ <body>
+     <div id="top_bar">
+         <div id="status">Loading</div>
+-        <div id="sendCtrlAltDelButton">Send CtrlAltDel</div>
+     </div>
+     <div id="screen">
+         <!-- This is where the remote screen will appear -->

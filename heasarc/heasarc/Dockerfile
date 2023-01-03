@@ -112,28 +112,6 @@ ENTRYPOINT ["/opt/entry.sh"]
 CMD ["/bin/bash"]
 USER $user
 
-## install js9 ##
-RUN mamba install -y -n ${pythonenv} -c conda-forge \
-    cfitsio && \
-    mamba clean -y --all
-USER root
-RUN git clone -b jh_updates --depth=1 https://github.com/zoghbi-a/js9.git /tmp/js9 && \
-    cd /tmp/js9 && \
-    ./configure --prefix=/usr/local \
-        --with-helper=nodejs \
-        --with-webdir=/opt/js9-web \
-        --with-cfitsio=/home/$user/miniconda3 && \
-    make && \
-    make install
-COPY js9/index.html js9/js9prefs.js /opt/js9-web/
-RUN cd /opt/js9-web/ && \
-    npm i socket.io uuid rimraf
-USER $user
-
-
-RUN pip install git+https://github.com/zoghbi-a/jpyjs9.git && \
-    rm -rf /home/$user/miniconda3/pkgs/* /home/$user/.cache
-## ----------- ##
 
 ## ds9 and vnc ##
 USER root
@@ -164,4 +142,10 @@ RUN mamba install -y -c conda-forge websockify supervisor && \
 RUN chown -R $user:$user /home/$user
 USER $user
 ## ----------- ##
->>>>>>> 227e69b (added ds9 and vnc)
+
+## install jdaviz ##
+RUN pip install jdaviz
+RUN jupyter lab build
+## -------------- ##
+
+>>>>>>> b8fb266 (add jdaviz to the heasarc image)

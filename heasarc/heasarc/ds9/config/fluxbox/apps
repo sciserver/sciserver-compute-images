@@ -1,3 +1,4 @@
 [app] (Title=SAOImage ds9)
- [Fullscreen] {yes}
+ [Fullscreen] {no}
+ [Maximized] {yes}
 [end]

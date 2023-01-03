@@ -24,3 +24,5 @@ patch /opt/novnc/vnc_lite.html vnc_lite.html.patch
 rm vnc_lite.html.patch
 
 mv ds9.svg /opt/
+
+printf '\nalias ds9="/usr/local/bin/ds9 -mode region"\n' >> ~/.bashrc

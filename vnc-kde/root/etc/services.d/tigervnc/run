@@ -1,0 +1,6 @@
+#!/command/with-contenv bash
+
+set -eu
+set -o pipefail
+
+exec s6-setuidgid idies /usr/bin/Xvnc "$DISPLAY" -geometry "$SCR_WIDTH"x"$SCR_HEIGHT" -depth 24 -SecurityTypes none -AlwaysShared

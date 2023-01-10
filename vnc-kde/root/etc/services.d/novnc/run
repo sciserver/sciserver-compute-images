@@ -1,0 +1,9 @@
+#!/command/with-contenv bash
+
+set -eu
+set -o pipefail
+
+s6-svwait /var/run/s6/legacy-services/tigervnc
+
+
+exec s6-setuidgid idies /novnc/utils/novnc_proxy

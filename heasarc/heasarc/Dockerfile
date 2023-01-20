@@ -127,11 +127,12 @@ RUN wget -q https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.t
     mv noVNC-${NOVNC_VERSION} /opt/novnc
 
 # ds9; this needs libxss1 that should've been installed above
-RUN wget -q https://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.8.3.tar.gz && \
-    tar -zxf ds9.ubuntu20.8.3.tar.gz && \
+ARG DS9_VERSION=8.4.1
+RUN wget -q https://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.${DS9_VERSION}.tar.gz && \
+    tar -zxf ds9.ubuntu20.${DS9_VERSION}.tar.gz && \
     chmod +x ds9 && \
     mv ds9 /usr/local/bin && \
-    rm ds9.ubuntu20.8.3.tar.gz
+    rm ds9.ubuntu20.${DS9_VERSION}.tar.gz
 ADD ds9/config config
 RUN cd config && bash distribute.sh && cd .. && rm -rf config
 ENV DISPLAY=:1

@@ -81,6 +81,16 @@ RUN chmod +x /opt/startup.sh
 # create symlink for Hesarc data volume
 RUN ln -s $headata /FTP
 
+## update heasoftpy ##
+ARG SHA=7e410150f6259a3bba894ed25841d33c346076bb
+RUN wget https://github.com/HEASARC/heasoftpy/archive/$SHA.zip \
+ && unzip $SHA.zip && rm -f $SHA.zip \
+ && cd heasoftpy-$SHA \
+ && conda run -n $pythonenv python setup.py build \
+ && cp -r build/lib/heasoftpy/* /opt/heasoft/x86_64-*/lib/python/heasoftpy/ \
+ && cd .. && rm -rf heasoftpy-$SHA 
+## ---------------- ##
+
 
 USER $user
 ## -------------------------- ##
@@ -89,9 +99,8 @@ USER $user
 # Get tutorial notebooks #
 # the selection of langing page is done in startup.sh
 RUN cd /home/$user/workspace \
- && git clone https://github.com/zoghbi-a/sciserver_cookbooks.git \
+ && git clone https://github.com/HEASARC/sciserver_cookbooks.git \
  && cd sciserver_cookbooks \
- && git checkout az-new-notebooks \
  && rm -rf .git
 
 ## Fix permissions ##

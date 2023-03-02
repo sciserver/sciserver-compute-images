@@ -148,5 +148,3 @@ USER $user
 RUN pip install jdaviz
 RUN jupyter lab build
 ## -------------- ##
-
->>>>>>> b8fb266 (add jdaviz to the heasarc image)

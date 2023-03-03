@@ -37,7 +37,8 @@ RUN bash kernel-additions.sh && \
 ## ------------------------ ##
 ## Install WWT labextension ##
 RUN pip install pywwt wwt_kernel_data_relay && \
-    jupyter labextension install @wwtelescope/jupyterlab 
+    jupyter labextension install @wwtelescope/jupyterlab && \
+    pip cache purge
 ## ------------------------ ##
 
 
@@ -137,14 +138,22 @@ ADD ds9/config config
 RUN cd config && bash distribute.sh && cd .. && rm -rf config
 ENV DISPLAY=:1
 
-RUN mamba install -y -c conda-forge websockify supervisor && \
-    mamba clean -y --all
+RUN mamba install -y -c conda-forge websockify supervisor -y && \
+    mamba clean -y --all 
 
 RUN chown -R $user:$user /home/$user
 USER $user
+RUN conda run -n $pythonenv pip install jupyter-server-proxy && \
+    pip cache purge
 ## ----------- ##
 
 ## install jdaviz ##
-RUN pip install jdaviz
+## NOTE: jdaviz needs voila, and currently voila 0.4.0 requires jupyter-server<2.0.0,>=1.18
+## so here, jupyter-server will be downgraded from 2.0 for this to work.
+## This will cause the following error when starting jupyterlab:
+## jupyter_server_terminals | error adding extension (enabled: True): Jupyter Server Terminals requires Jupyter Server 2.0+
+## The terminal seems to be working fine despite that. Once voila is updated to use jupyter-server=2, this
+## should disappear
+RUN conda run -n $pythonenv pip install jdaviz && pip cache purge
 RUN jupyter lab build
 ## -------------- ##

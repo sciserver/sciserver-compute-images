@@ -6,7 +6,7 @@ def setup_ds9():
         'port': 5901,
         'timeout': 30,
         'mappath': {'/': '/vnc_lite.html'},
-        'new_browser_window': False,
+        'new_browser_tab': False,
         'launcher_entry': {
             'enabled': True,
             'icon_path': '/opt/ds9.svg',

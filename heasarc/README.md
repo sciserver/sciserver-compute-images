@@ -48,7 +48,7 @@ The tests/ folder contains some simple tests to check the environments have been
 The main different for local testing is the availability of the data. First, run the script in `tests/data/download_data.sh` to download the data needed for testing to `tests/data/FTP`. This FTP folder can then be mounted when running the test:
 
 ```sh
-docker run --rm -it -p 8888:8888 -v $PWD/test:/opt/test -v ${PWD}/tests/data/FTP/:/home/idies/workspace/headata/FTP  heasarc /opt/test/run_tests.sh
+docker run --rm -it -p 8888:8888 -v $PWD/tests:/home/idies/tests -v ${PWD}/tests/data/FTP/:/home/idies/workspace/headata/FTP  heasarc /opt/test/run_tests.sh
 ```
 
 #### Testing on Sciserver

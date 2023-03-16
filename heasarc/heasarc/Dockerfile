@@ -157,3 +157,12 @@ RUN conda run -n $pythonenv pip install jupyter-server-proxy && \
 RUN conda run -n $pythonenv pip install jdaviz && pip cache purge
 RUN jupyter lab build
 ## -------------- ##
+
+# create a script to print the version; the version arg comes from the variable
+# passed when building the image
+ARG version=0.1
+User root
+RUN printf "#!/usr/bin/bash\necho HEASARC Sciserver version: $version\necho Build date: `date`" \
+    > /usr/local/bin/heasarc-sciserver-version && \
+    chmod +x /usr/local/bin/heasarc-sciserver-version
+USER $user

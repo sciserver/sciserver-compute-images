@@ -1,5 +1,6 @@
 {
     "image": "buildtest",
     "version": "1.0",
+    "compat": "jupyter",
     "target": "buildtest"
 }

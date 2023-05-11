@@ -4,7 +4,7 @@
     },
     
     "ciao": {
-        "version": "4.15",
+        "version": "4.15.1",
         "heasoft_version": "6.31.1"
     },
     
@@ -19,7 +19,9 @@
     },
     
     "heasarc": {
-        "version": "0.1.2"
+        "version": "0.2",
+        "NOVNC_VERSION": "1.3.0",
+        "DS9_VERSION": "8.4.1"
     },
     
     "sciserver-jupyter": {

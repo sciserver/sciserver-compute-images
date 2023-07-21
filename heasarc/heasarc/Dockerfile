@@ -36,8 +36,8 @@ RUN bash kernel-additions.sh && \
 
 ## ------------------------ ##
 ## Install WWT labextension ##
-RUN pip install pywwt wwt_kernel_data_relay && \
-    jupyter labextension install @wwtelescope/jupyterlab && \
+RUN mamba run -n ${pythonenv} pip install pywwt wwt_kernel_data_relay && \
+    mamba run -n ${pythonenv} jupyter labextension install @wwtelescope/jupyterlab && \
     pip cache purge
 ## ------------------------ ##
 
@@ -46,7 +46,8 @@ RUN pip install pywwt wwt_kernel_data_relay && \
 ## ------------------------------ ##
 ## Install extra python libraries ##
 ADD requirements.txt requirements.txt
-RUN mamba install -y -c conda-forge --file requirements.txt && mamba clean -y --all && rm requirements.txt \
+RUN mamba install -n ${pythonenv} -y -c conda-forge --file requirements.txt \
+ && mamba clean -y --all && rm requirements.txt \
  && rm -rf /home/$user/miniconda3/pkgs/*
 ## ------------------------------ ##
 
@@ -64,6 +65,14 @@ COPY overrides.json /home/$user/miniconda3/envs/${pythonenv}/share/jupyter/lab/s
 
 # copy out startup.sh to /opt/
 USER root
+
+# fix yarn & clean cache
+RUN apt-get -y remove cmdtest yarn \
+ && npm install -g yarn
+USER $user
+RUN yarn cache clean
+USER root
+
 
 # Copy jupyter-lab startup script
 COPY startup.sh /opt/startup.sh
@@ -92,14 +101,7 @@ USER $user
 # the selection of langing page is done in startup.sh
 RUN cd /home/$user/workspace \
  && git clone https://github.com/HEASARC/sciserver_cookbooks.git \
- && cd sciserver_cookbooks \
- && rm -rf .git
-
-## Fix permissions ##
-USER root
-RUN chown $user:$user -R /opt/heasoft /home/$user
-USER $user
-## --------------- ##
+ && cd sciserver_cookbooks 
 
 # add entry.sh as an entrypoint script, which calls .bashrc before execution; 
 # Needed for running batch jobs.
@@ -138,12 +140,10 @@ ADD ds9/config config
 RUN cd config && bash distribute.sh && cd .. && rm -rf config
 ENV DISPLAY=:1
 
-RUN mamba install -y -c conda-forge websockify supervisor -y && \
-    mamba clean -y --all 
-
-RUN chown -R $user:$user /home/$user
 USER $user
-RUN conda run -n $pythonenv pip install jupyter-server-proxy && \
+RUN mamba install -n $pythonenv -y -c conda-forge websockify supervisor -y && \
+    mamba clean -y --all && \
+    mamba run -n $pythonenv pip install jupyter-server-proxy && \
     pip cache purge
 ## ----------- ##
 
@@ -154,8 +154,8 @@ RUN conda run -n $pythonenv pip install jupyter-server-proxy && \
 ## jupyter_server_terminals | error adding extension (enabled: True): Jupyter Server Terminals requires Jupyter Server 2.0+
 ## The terminal seems to be working fine despite that. Once voila is updated to use jupyter-server=2, this
 ## should disappear
-RUN conda run -n $pythonenv pip install jdaviz && pip cache purge
-RUN jupyter lab build
+RUN conda run -n $pythonenv pip install jdaviz && pip cache purge \
+ && conda run -n $pythonenv jupyter lab build
 ## -------------- ##
 
 # create a script to print the version; the version arg comes from the variable
@@ -165,4 +165,21 @@ User root
 RUN printf "#!/usr/bin/bash\necho HEASARC Sciserver version: $version\necho Build date: `date`" \
     > /usr/local/bin/heasarc-sciserver-version && \
     chmod +x /usr/local/bin/heasarc-sciserver-version
+## Fix permissions ##
+RUN chown $user:$user -R /opt/heasoft /home/$user
+## --------------- ##
 USER $user
+
+
+# change default pip install location so python libraries 
+# installed by the user persist.
+RUN printf "\n\
+if [ -f /home/${user}/workspace/Storage/*/persistent ]; then\n\
+    export PIP_TARGET=/home/${user}/workspace/Storage/*/persistent\n\
+fi\n" >> /home/${user}/.bashrc
+
+# add .bashrc from the user's persistent space
+RUN printf "\n\
+if [ -f /home/${user}/workspace/Storage/*/persistent/.bashrc ]; then\n\
+    . /home/${user}/workspace/Storage/*/persistent/.bashrc\n\
+fi\n" >> /home/${user}/.bashrc

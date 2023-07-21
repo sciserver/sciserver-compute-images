@@ -1,6 +1,6 @@
 {
     "heasoft": {
-        "version": "6.31.1"
+        "version": "6.32"
     },
     
     "ciao": {
@@ -19,7 +19,7 @@
     },
     
     "heasarc": {
-        "version": "0.2",
+        "version": "0.3",
         "NOVNC_VERSION": "1.3.0",
         "DS9_VERSION": "8.4.1"
     },

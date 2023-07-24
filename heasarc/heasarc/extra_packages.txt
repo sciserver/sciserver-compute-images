@@ -1,0 +1,6 @@
+zip
+unzip
+ghostscript
+vim
+screen
+rename

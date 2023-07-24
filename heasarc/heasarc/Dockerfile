@@ -8,11 +8,10 @@ ARG pythonenv=heasoft
 ## ----------------------- ##
 ## Install useful software ##
 USER root
+COPY extra_packages.txt .
 RUN apt-get update && apt-get -y install \
-        zip unzip \
-        ghostscript \
-        vim \
-        screen \
+        $(cat extra_packages.txt) \
+ && rm extra_packages.txt \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 ## ----------------------- ##

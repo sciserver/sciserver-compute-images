@@ -27,6 +27,7 @@ WORKDIR /home/$user
 ## ------------------------------ ##
 ## A few additions to the kernels ##
 COPY --chown=$user kernel.json kernel-additions.sh ./
+COPY kernel-run.sh /opt/
 RUN bash kernel-additions.sh && \
     rm kernel.json kernel-additions.sh && \ 
     mamba clean -y --all && rm -rf /home/$user/miniconda3/pkgs/*
@@ -81,13 +82,13 @@ RUN chmod +x /opt/startup.sh
 RUN ln -s $headata /FTP
 
 ## update heasoftpy ##
-ARG SHA=7e410150f6259a3bba894ed25841d33c346076bb
-RUN wget https://github.com/HEASARC/heasoftpy/archive/$SHA.zip \
- && unzip $SHA.zip && rm -f $SHA.zip \
- && cd heasoftpy-$SHA \
- && conda run -n $pythonenv python setup.py build \
- && cp -r build/lib/heasoftpy/* /opt/heasoft/x86_64-*/lib/python/heasoftpy/ \
- && cd .. && rm -rf heasoftpy-$SHA 
+# ARG SHA=7e410150f6259a3bba894ed25841d33c346076bb
+# RUN wget https://github.com/HEASARC/heasoftpy/archive/$SHA.zip \
+#  && unzip $SHA.zip && rm -f $SHA.zip \
+#  && cd heasoftpy-$SHA \
+#  && conda run -n $pythonenv python setup.py build \
+#  && cp -r build/lib/heasoftpy/* /opt/heasoft/x86_64-*/lib/python/heasoftpy/ \
+#  && cd .. && rm -rf heasoftpy-$SHA 
 ## ---------------- ##
 
 
@@ -169,13 +170,6 @@ RUN chown $user:$user -R /opt/heasoft /home/$user
 ## --------------- ##
 USER $user
 
-
-# change default pip install location so python libraries 
-# installed by the user persist.
-RUN printf "\n\
-if [ -f /home/${user}/workspace/Storage/*/persistent ]; then\n\
-    export PIP_TARGET=/home/${user}/workspace/Storage/*/persistent\n\
-fi\n" >> /home/${user}/.bashrc
 
 # add .bashrc from the user's persistent space
 RUN printf "\n\

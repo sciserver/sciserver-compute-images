@@ -1,7 +1,6 @@
 {
     "argv": [
-        "conda", "run", "--no-capture-output", "-n", "heasoft", 
-        "python", "-m", "ipykernel_launcher", "-f", "{connection_file}"
+        "bash", "/opt/kernel-run.sh", "heasoft", "{connection_file}"
     ],
     "display_name": "(heasoft)",
     "language": "python",

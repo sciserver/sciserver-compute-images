@@ -69,7 +69,7 @@ source \$SAS_DIR/setsas.sh \n\
 if ! [ -d $headata ]; then \n \
    echo '\\n** HEASARC data Volume is needed for SAS_CCFPATH. Please mount it when creating the container **\\n' \n\
 fi \n\
-" > miniconda3/envs/${pythonenv}/etc/conda/deactivate.d/activate_xmmsas.sh \
+" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_xmmsas.sh \
  && printf "\n\
 export PATH=\$SAS_PREV_PATH \n\
 export LD_LIBRARY_PATH=\$SAS_PREV_LD_LIBRARY_PATH \n\
@@ -86,7 +86,7 @@ fi \n\
  && printf "\n\
 setenv PATH \$SAS_PREV_PATH \n\
 setenv LD_LIBRARY_PATH \$SAS_PREV_LD_LIBRARY_PATH \n\
-" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/deactivate_xmmsas.csh
+" > miniconda3/envs/${pythonenv}/etc/conda/deactivate.d/deactivate_xmmsas.csh
 ## ------------------- ##
 
 

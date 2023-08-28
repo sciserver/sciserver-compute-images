@@ -13,14 +13,12 @@ USER idies
 
 WORKDIR /home/idies
 
-RUN curl -L https://repo.anaconda.com/miniconda/Miniconda3-py310_23.3.1-0-Linux-x86_64.sh -o miniconda.sh \
-    && bash miniconda.sh -b \
+RUN curl -L https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -o miniconda.sh \
+    && bash miniconda.sh -b -p /home/idies/miniconda3 \
     && rm -f miniconda.sh \
     && rm -rf /home/idies/miniconda3/pkgs/*
 
 ENV PATH /home/idies/miniconda3/bin:$PATH
-
-RUN conda install -y -c conda-forge mamba=1.4.4
 
 RUN mamba install -y -c conda-forge \
         jupyterlab=3.5.0 \

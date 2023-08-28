@@ -35,8 +35,8 @@ USER ${user}
 ## install heasoftpy dependencies ##
 ## these will need to be done automatically in the future
 COPY requirements.txt .
-RUN conda create -y -n ${pythonenv} python=3.10 --file requirements.txt \
- && conda clean -y --all \
+RUN mamba create -y -n ${pythonenv} python=3.10 --file requirements.txt \
+ && mamba clean -y --all \
  && rm -rf miniconda3/pkgs/* requirements.txt
  
 # needed to get conda to work properly

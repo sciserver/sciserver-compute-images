@@ -125,7 +125,7 @@ RUN apt-get update && apt-get -y install \
     rm -rf /var/lib/apt/lists/*
     
 ARG NOVNC_VERSION=1.3.0
-RUN wget -q https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.tar.gz && \
+RUN curl -L -O https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.tar.gz && \
     tar -zxf v${NOVNC_VERSION}.tar.gz && rm v${NOVNC_VERSION}.tar.gz && \
     mv noVNC-${NOVNC_VERSION} /opt/novnc
 

@@ -1,11 +1,11 @@
 {
     "heasoft": {
-        "version": "6.32"
+        "version": "6.32.1"
     },
     
     "ciao": {
         "version": "4.15.1",
-        "heasoft_version": "6.31.1"
+        "heasoft_version": "6.32.1"
     },
     
     "fermi": {

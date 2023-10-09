@@ -35,14 +35,13 @@ USER ${user}
 ## install heasoftpy dependencies ##
 ## these will need to be done automatically in the future
 COPY requirements.txt .
-RUN conda create -y -n ${pythonenv} python=3.9 --file requirements.txt \
- && conda clean -y --all \
+RUN mamba create -y -n ${pythonenv} python=3.10 --file requirements.txt \
+ && mamba clean -y --all \
  && rm -rf miniconda3/pkgs/* requirements.txt
  
 # needed to get conda to work properly
 ENV BASH_ENV=~/.bashrc
 ENV SHELL=/bin/bash
-RUN echo "source /home/${user}/miniconda3/bin/activate ${pythonenv}" > ~/.bashrc
 SHELL ["/bin/bash", "-c"]
 ## ------------------------------ ##
 
@@ -116,7 +115,7 @@ RUN bash heasoft-setup.sh ${headata} \
  && mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
  && mv activate*sh miniconda3/envs/${pythonenv}/etc/conda/activate.d \
  \
- && printf "source activate ${pythonenv}" > ~/.bashrc \
+ && printf "source activate ${pythonenv}" >> ~/.bashrc \
  && printf "source activate ${pythonenv}" >> ~/.cshrc \
  && rm heasoft-setup.sh
 ## ------------------- ##

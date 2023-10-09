@@ -1,7 +1,6 @@
 FROM ciao:latest
 
 ARG version=2.2.0
-ARG headata=/home/idies/workspace/headata/FTP
 ARG user=idies
 ARG pythonenv=fermi
 

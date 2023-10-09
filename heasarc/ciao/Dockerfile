@@ -6,16 +6,24 @@ ARG headata=/home/idies/workspace/headata/FTP
 ARG user=idies
 ARG pythonenv=ciao
 
+## ------------------------- ##
+## add tools needed for CIAO ##
+USER root
+RUN apt-get update && apt-get -y install \
+    file \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+USER ${user}
+## ------------------------- ##
 
 
 ## ------------------------------ ##
 ## Install the ciao conda package ##
 ## remove xspec modelData and make a link
 USER $user
-# note that numpy=1.24 breaks some tasks, so force 1.23 until ciao fixes it.
 RUN mamba create -n ${pythonenv} -y -c conda-forge \
   -c https://cxc.cfa.harvard.edu/conda/ciao \
-  ciao=${version} sherpa ciao-contrib marx numpy=1.23 \
+  ciao=${version} sherpa ciao-contrib marx python=3.10 \
   \
  && conda clean -y --all \
  && rm -rf /home/$user/miniconda3/pkgs/* \

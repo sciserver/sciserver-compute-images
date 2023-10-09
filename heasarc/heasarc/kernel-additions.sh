@@ -12,7 +12,7 @@ for env in  heasoft ciao fermi xmmsas; do
     echo "-- Working on conda environment $env --"
 
     # Add conda envs to jupyter
-    mamba install -y -n $env ipykernel jupyterlab=3.5.2 ipywidgets -c conda-forge
+    mamba install -y -n $env ipykernel jupyterlab=3.5.0 ipywidgets -c conda-forge
     mamba run -n $env python -m ipykernel install --user --name=$env --display-name="($env)"
 
     # A fix that ensures notebooks load the scripts in /env/etc/conda/activate.d

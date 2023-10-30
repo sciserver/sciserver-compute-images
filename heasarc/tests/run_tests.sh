@@ -22,12 +22,12 @@ if [ ! -d "data/FTP/caldb" ]; then
 fi
 
 
-# By default, if no test is specified (heasoft | ciao | fermi | xmmsas), run all of them
-heasoft=0; ciao=0; fermi=0; xmmsas=0
+# By default, if no test is specified (heasoft | ciao | fermi | xmmsas| spex), run all of them
+heasoft=0; ciao=0; fermi=0; xmmsas=0; spex=0
 
 if ( [ "$#" == "0" ] || [ "$1" == "all" ] ); then
     echo option-1
-    heasoft=1; ciao=1; fermi=1; xmmsas=1
+    heasoft=1; ciao=1; fermi=1; xmmsas=1; spex=1;
 else
     for i in $@; do
         if [ $i == "heasoft" ];  then 
@@ -36,8 +36,11 @@ else
             ciao=1; continue
         elif [ $i == "fermi" ];  then 
             fermi=1; continue
+        elif [ $i == "spex" ];  then
+            spex=1; continue
         elif [ $i == "xmmsas" ]; then 
             xmmsas=1; continue
+        else
             echo "** ERROR: Unrecognized option $i"
             exit 1
         fi
@@ -54,7 +57,7 @@ echo
 
 
 test_dir=`dirname $0`
-for image in heasoft ciao fermi xmmsas; do
+for image in heasoft ciao fermi spex xmmsas; do
     
     if [ ${!image} == "1" ]; then
         echo

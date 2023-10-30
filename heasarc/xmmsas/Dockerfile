@@ -1,4 +1,4 @@
-FROM fermi:latest
+FROM spex:latest
 
 
 ARG version=20.0.0

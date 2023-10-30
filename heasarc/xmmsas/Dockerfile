@@ -55,6 +55,14 @@ RUN mamba run -n $pythonenv pip install -r ${xmmsas_dir}/sas_${version}_python_p
  && rm -r /home/${user}/.cache/pip
 ## --------------------------- ##
 
+## add pysasgof ##
+RUN git clone https://github.com/rjtanner/gofpysas.git \
+ && cd gofpysas \
+ && git checkout 491082cbd1a4c9d7d46d32e62767d8d186b2ab77 \
+ && rm -rf .git \
+ && cd .. && mv gofpysas miniconda3/envs/${pythonenv}/lib/python${pyversion}/
+## ------------ ## 
+
 
 ## ------------------- ##
 ## Configure shells... ##

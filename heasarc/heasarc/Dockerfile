@@ -39,6 +39,13 @@ RUN pip install pywwt wwt_kernel_data_relay && \
     pip cache purge
 ## ------------------------ ##
 
+# Custom condarc; install nb_conda_kernels to add conda env to jupyter
+# and also handle user environments
+COPY --chown=1000:1000 condarc /home/$user/miniconda3/.condarc
+COPY --chown=1000:1000 nb_conda_kernels.json /home/$user/miniconda3/etc/jupyter/jupyter_config.json
+RUN mamba install nb_conda_kernels \
+ && mamba clean -y --all && rm -rf /home/$user/miniconda3/pkgs/*
+
 
 
 ## ------------------------------ ##

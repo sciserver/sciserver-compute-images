@@ -68,9 +68,7 @@ COPY --chown=1000:1000 overrides.json /home/$user/miniconda3/envs/${pythonenv}/s
 ## other setup things as root ##
 ## -------------------------- ##
 
-# copy out startup.sh to /opt/
 USER root
-
 # fix yarn & clean cache
 RUN apt-get -y remove cmdtest yarn \
  && npm install -g yarn

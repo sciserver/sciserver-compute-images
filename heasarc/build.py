@@ -25,6 +25,7 @@ IMAGES = [
     'heasoft',
     'ciao',
     'fermi',
+    'spex',
     'xmmsas',
     'heasarc'
 ]

@@ -1,4 +1,4 @@
-FROM fermi:latest
+FROM spex:latest
 
 
 ARG version=20.0.0
@@ -54,6 +54,14 @@ RUN mamba run -n $pythonenv pip install -r ${xmmsas_dir}/sas_${version}_python_p
  && mamba run -n $pythonenv pip cache purge \
  && rm -r /home/${user}/.cache/pip
 ## --------------------------- ##
+
+## add pysasgof ##
+RUN git clone https://github.com/rjtanner/gofpysas.git \
+ && cd gofpysas \
+ && git checkout 1248d25 \
+ && rm -rf .git \
+ && cd .. && mv gofpysas miniconda3/envs/${pythonenv}/lib/python${pyversion}/
+## ------------ ## 
 
 
 ## ------------------- ##

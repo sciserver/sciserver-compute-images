@@ -7,7 +7,7 @@
 cd ~
 git clone -b sciserver-v2.1.0 --depth=1 https://github.com/sciserver/SciScript-Python.git
 
-for env in  heasoft ciao fermi xmmsas; do
+for env in  heasoft ciao fermi spex xmmsas; do
     
     echo "-- Working on conda environment $env --"
 

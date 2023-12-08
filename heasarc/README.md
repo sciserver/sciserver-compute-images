@@ -6,9 +6,9 @@ the SciServer help desk.
 ### Overview 
 The hierarchy of the images is as follows:
 
-  sciserver-base -> sciserver-jupyter -> heasoft -> ciao -> fermi -> xmmsas -> heasarc
+  sciserver-base -> sciserver-jupyter -> heasoft -> ciao -> fermi -> spex -> xmmsas -> heasarc
    
-In the final `heasarc` image, there are 4 conda environments are: `heasoft` (default), `ciao`, `fermi` and `xmmsas`.
+In the final `heasarc` image, there are 5 conda environments are: `heasoft` (default), `ciao`, `fermi`, `spex` and `xmmsas`.
 Jupyterlab and related tools are installed in the heasarc/Dockerfile inside the `heasoft` conda environment.
 
 The data folder is expected to be mounted to `/home/idies/workspace/headata/FTP`. A link to that folder is also made in `/FTP`.
@@ -95,6 +95,11 @@ Starts from Ubuntu v22.04, creates `idies` user and install some base linux tool
 - Follow instructions from [the Fermitools page](https://github.com/fermi-lat/Fermitools-conda/wiki/Installation-Instructions).  and install the pakcages to a conda environment `fermi`
 - Add a script to `miniconda3/envs/fermi/etc/conda/activate.d/` to supress some of warning messages.
 
+#### spex
+- Follow instructions from [the Spex page](https://www.sron.nl/astrophysics-spex/).  and install the pakcages to a conda environment `spex`
+- - Install any python packages to `pyspextools`
+- Add initalization script to `miniconda3/envs/spex/etc/conda/activate.d/`.
+
 #### xmmsas
 - Create a conda environment `xmmsas`.
 - Download and install SAS following standard instructions.
@@ -122,4 +127,4 @@ Abdu Zoghbi.
 
 
 ---
-Last updated: 2022/11/23 by Abdu Zoghbi.
+Last updated: 2023/10/30 by Abdu Zoghbi.

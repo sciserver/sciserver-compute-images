@@ -31,4 +31,6 @@ RUN mamba install -y -c conda-forge \
     && jupyter kernelspec remove -f python3 \
     && rm -rf /home/idies/miniconda3/pkgs/*
 
+RUN conda init bash
+
 COPY startup.sh /opt/startup.sh

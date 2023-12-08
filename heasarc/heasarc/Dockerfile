@@ -2,7 +2,6 @@ FROM xmmsas:latest
 
 ARG headata=/home/idies/workspace/headata/FTP
 ARG user=idies
-ARG pythonenv=heasoft
 
 
 ## ----------------------- ##
@@ -26,18 +25,17 @@ WORKDIR /home/$user
 
 ## ------------------------------ ##
 ## A few additions to the kernels ##
-COPY --chown=$user kernel.json kernel-additions.sh ./
-COPY kernel-run.sh /opt/
+COPY --chown=1000:1000 kernel-additions.sh ./
 RUN bash kernel-additions.sh && \
-    rm kernel.json kernel-additions.sh && \ 
+    rm kernel-additions.sh && \ 
     mamba clean -y --all && rm -rf /home/$user/miniconda3/pkgs/*
 ## ------------------------------ ##
 
 
 ## ------------------------ ##
 ## Install WWT labextension ##
-RUN mamba run -n ${pythonenv} pip install pywwt wwt_kernel_data_relay && \
-    mamba run -n ${pythonenv} jupyter labextension install @wwtelescope/jupyterlab && \
+RUN pip install pywwt wwt_kernel_data_relay && \
+    jupyter labextension install @wwtelescope/jupyterlab && \
     pip cache purge
 ## ------------------------ ##
 
@@ -46,7 +44,7 @@ RUN mamba run -n ${pythonenv} pip install pywwt wwt_kernel_data_relay && \
 ## ------------------------------ ##
 ## Install extra python libraries ##
 ADD requirements.txt requirements.txt
-RUN mamba install -n ${pythonenv} -y -c conda-forge --file requirements.txt \
+RUN mamba install -n heasoft -y -c conda-forge --file requirements.txt \
  && mamba clean -y --all && rm requirements.txt \
  && rm -rf /home/$user/miniconda3/pkgs/*
 ## ------------------------------ ##
@@ -55,7 +53,7 @@ RUN mamba install -n ${pythonenv} -y -c conda-forge --file requirements.txt \
 
 
 ## copy some setting files ##
-COPY overrides.json /home/$user/miniconda3/envs/${pythonenv}/share/jupyter/lab/settings/overrides.json
+COPY --chown=1000:1000 overrides.json /home/$user/miniconda3/envs/${pythonenv}/share/jupyter/lab/settings/overrides.json
 ## ----------------------- ##
 
 
@@ -74,22 +72,8 @@ RUN yarn cache clean
 USER root
 
 
-# Copy jupyter-lab startup script
-COPY startup.sh /opt/startup.sh
-RUN chmod +x /opt/startup.sh
-
 # create symlink for Hesarc data volume
 RUN ln -s $headata /FTP
-
-## update heasoftpy ##
-# ARG SHA=7e410150f6259a3bba894ed25841d33c346076bb
-# RUN wget https://github.com/HEASARC/heasoftpy/archive/$SHA.zip \
-#  && unzip $SHA.zip && rm -f $SHA.zip \
-#  && cd heasoftpy-$SHA \
-#  && conda run -n $pythonenv python setup.py build \
-#  && cp -r build/lib/heasoftpy/* /opt/heasoft/x86_64-*/lib/python/heasoftpy/ \
-#  && cd .. && rm -rf heasoftpy-$SHA 
-## ---------------- ##
 
 
 USER $user
@@ -102,18 +86,6 @@ USER $user
 RUN cd /home/$user/workspace \
  && git clone https://github.com/HEASARC/sciserver_cookbooks.git \
  && cd sciserver_cookbooks 
-
-# add entry.sh as an entrypoint script, which calls .bashrc before execution; 
-# Needed for running batch jobs.
-# When the container is run without starting jupyter-lab (i.e. without calling /opt/startup.sh), 
-# all commands are executed though this entry.sh script, which sets the default conda environment to heasoft
-# e.g. 'docker run --rm heasarc which python' should give: /home/idies/miniconda3/envs/heasoft/bin/python
-USER root
-COPY entry.sh /opt/entry.sh
-RUN chmod +x /opt/entry.sh
-ENTRYPOINT ["/opt/entry.sh"]
-CMD ["/bin/bash"]
-USER $user
 
 
 ## ds9 and vnc ##
@@ -136,14 +108,14 @@ RUN wget -q https://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.${DS9_VERSION}.tar
     chmod +x ds9 && \
     mv ds9 /usr/local/bin && \
     rm ds9.ubuntu20.${DS9_VERSION}.tar.gz
-ADD ds9/config config
+ADD --chown=1000:1000 ds9/config config
 RUN cd config && bash distribute.sh && cd .. && rm -rf config
 ENV DISPLAY=:1
 
 USER $user
-RUN mamba install -n $pythonenv -y -c conda-forge websockify supervisor -y && \
+RUN mamba install -y -c conda-forge websockify supervisor -y && \
     mamba clean -y --all && \
-    mamba run -n $pythonenv pip install jupyter-server-proxy && \
+    pip install jupyter-server-proxy && \
     pip cache purge
 ## ----------- ##
 
@@ -154,8 +126,8 @@ RUN mamba install -n $pythonenv -y -c conda-forge websockify supervisor -y && \
 ## jupyter_server_terminals | error adding extension (enabled: True): Jupyter Server Terminals requires Jupyter Server 2.0+
 ## The terminal seems to be working fine despite that. Once voila is updated to use jupyter-server=2, this
 ## should disappear
-RUN conda run -n $pythonenv pip install jdaviz && pip cache purge \
- && conda run -n $pythonenv jupyter lab build
+RUN mamba run -n heasoft pip install jdaviz && mamba run -n heasoft pip cache purge \
+ && pip install jdaviz && pip cache purge
 ## -------------- ##
 
 # create a script to print the version; the version arg comes from the variable

@@ -25,12 +25,12 @@ RUN curl -L "https://github.com/conda-forge/miniforge/releases/download/23.3.1-1
 ENV PATH /home/idies/miniconda3/bin:$PATH
 
 RUN mamba install -y -c conda-forge \
-        jupyterlab=3.5.0 \
-        pip=23.0.1 \
+        jupyterlab=4.0.9 \
+        pip=23.3.1 \
     && conda clean -y --all \
-    && jupyter kernelspec remove -f python3 \
     && rm -rf /home/idies/miniconda3/pkgs/*
 
+ENV SHELL=/bin/bash
 RUN conda init bash
 
 COPY startup.sh /opt/startup.sh

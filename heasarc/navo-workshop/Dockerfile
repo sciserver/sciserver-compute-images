@@ -1,4 +1,4 @@
-FROM sciserver-essentials:3.1
+FROM sciserver-jupyter:v3.0
 
 ARG version=012024
 ARG user=idies
@@ -6,27 +6,21 @@ ARG user=idies
 USER $user
 WORKDIR /home/$user
 
-# upgrade jupyter
-RUN (source activate py39 \
-    && mamba update --all -y \
-    && mamba install -y jupytext \
-    && mamba clean -y --all \
-)
+RUN conda init bash \
+ && mamba update -y jupyterlab -c conda-forge \
+ && python -m ipykernel install --user \
+ && mamba install -y jupytext -c conda-forge \
+ && mamba clean -y --all
 
 # get the workshop material
-RUN (source activate py39 \
+RUN cd workspace \
     && git clone https://github.com/NASA-NAVO/navo-workshop \
     && cd navo-workshop \
-    && mamba env create --file environment.yml -y \
+    && mamba env create --file environment.yml \
     && mamba clean -y --all
-)
 
-# add environment to jupyter
-RUN (source activate navo-workshop \
-    && python -m ipykernel install --name=navo-workshop
-)
+RUN mamba run -n navo-env python -m ipykernel install --name=navo-env --user
 
 # make jupytext default for markdown
 RUN mkdir -p /home/$user/miniconda3/share/jupyter/lab/settings
 COPY --chown=1000:1000 overrides.json /home/$user/miniconda3/share/jupyter/lab/settings/overrides.json
-

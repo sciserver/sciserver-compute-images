@@ -50,3 +50,4 @@
 - Add jupytext, and make it a default reader for .md files.
 - User conda envs are in persistent/users_conda_envs (defined in condarc).
 - Add nb_conda_kernels to handle conda environments (builtin and from the user).
+- Update ciao to 4.16

@@ -39,3 +39,7 @@
 - Upgrade node in sciserver-jupyter to v20
 - Update ds9 to v8.5
 - Added (this) Changelog.
+
+# Version 0.5
+---
+- Add navo-workshop Dockerfile. This is independent of the heasoft and other builds.

@@ -51,3 +51,4 @@
 - User conda envs are in persistent/users_conda_envs (defined in condarc).
 - Add nb_conda_kernels to handle conda environments (builtin and from the user).
 - Update ciao to 4.16
+- update ds9 download to use archive links so they persist when new versions are added

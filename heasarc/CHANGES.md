@@ -43,6 +43,9 @@
 # Version 0.5
 ---
 - Add navo-workshop Dockerfile. This is independent of the heasoft and other builds.
+
+# Version 0.6
+---
 - Switch running jupyter in the base environment, not heasoft
 - Add jupytext, and make it a default reader for .md files.
 - User conda envs are in persistent/users_conda_envs (defined in condarc).

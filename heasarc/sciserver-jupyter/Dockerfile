@@ -31,6 +31,7 @@ RUN mamba install -y -c conda-forge \
     && rm -rf /home/idies/miniconda3/pkgs/*
 
 ENV SHELL=/bin/bash
-RUN conda init bash
+RUN conda init bash \
+ && conda init tcsh
 
 COPY startup.sh /opt/startup.sh

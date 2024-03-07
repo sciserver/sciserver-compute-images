@@ -58,3 +58,4 @@
 - Add back csh initializations
 - Add jupyterlab-execute-time
 - Add support for a user's bashrc under /home/${user}/workspace/Storage/*/persistent/.bashrc.
+- Add JS9

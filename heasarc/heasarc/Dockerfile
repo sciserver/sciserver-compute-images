@@ -43,7 +43,7 @@ RUN pip install pywwt wwt_kernel_data_relay && \
 # and also handle user environments
 COPY --chown=1000:1000 condarc /home/$user/miniconda3/.condarc
 COPY --chown=1000:1000 nb_conda_kernels.json /home/$user/miniconda3/etc/jupyter/jupyter_config.json
-RUN mamba install nb_conda_kernels jupytext \
+RUN mamba install nb_conda_kernels jupytext=1.16.0 \
  && mamba clean -y --all && rm -rf /home/$user/miniconda3/pkgs/*
 
 
@@ -53,15 +53,11 @@ RUN mamba install nb_conda_kernels jupytext \
 ADD requirements.txt requirements.txt
 RUN mamba install -n heasoft -y -c conda-forge --file requirements.txt \
  && mamba clean -y --all && rm requirements.txt \
- && rm -rf /home/$user/miniconda3/pkgs/*
+ && rm -rf /home/$user/miniconda3/pkgs/* \
+ && pip install jupyterlab-git jupyterlab-execute-time \
+ && pip cache purge
 ## ------------------------------ ##
 
-
-
-
-## copy some setting files ##
-COPY --chown=1000:1000 overrides.json /home/$user/miniconda3/envs/${pythonenv}/share/jupyter/lab/settings/overrides.json
-## ----------------------- ##
 
 
 ## -------------------------- ##
@@ -89,7 +85,8 @@ USER $user
 # Get tutorial notebooks #
 # the selection of langing page is done in startup.sh
 RUN cd /home/$user/workspace \
- && git clone https://github.com/HEASARC/sciserver_cookbooks.git \
+ #&& git clone https://github.com/HEASARC/sciserver_cookbooks.git \
+ && git clone -b switch-to-md https://github.com/zoghbi-a/sciserver_cookbooks.git \
  && cd sciserver_cookbooks 
 
 
@@ -135,6 +132,28 @@ RUN mamba run -n heasoft pip install jdaviz && mamba run -n heasoft pip cache pu
  && pip install jdaviz && pip cache purge
 ## -------------- ##
 
+## JS9 from Duy ##
+USER root
+RUN JS9_SHA=be9a644 \
+  && wget -q https://github.com/duytnguyendtn/js9/archive/${JS9_SHA}.zip \
+  && unzip ${JS9_SHA}.zip \
+  && rm ${JS9_SHA}.zip \
+  && mv js9-${JS9_SHA}* /opt/js9
+
+USER $user
+# 2bfcb136802f23f1fab7d259a791b6e5ee5322bf
+ENV INSTALL_JS9=false
+RUN JPYJS9_SHA=2bfcb136 \
+ && mkdir -p ~/.local/share/jupyterjs9 \
+ && ln -s /opt/js9 /home/$user/.local/share/jupyterjs9/ \
+ && git clone -b jupyterjs9 https://github.com/duytnguyendtn/jpyjs9 \
+ && cd jpyjs9 && git checkout ${JPYJS9_SHA} && cd .. \
+ && pip install ./jpyjs9 \
+ && for cenv in heasoft ciao xmmsas fermi; do conda run -n $cenv pip install ./jpyjs9; done \
+ && rm -rf jpyjs9 && pip cache purge
+## ------------ ##
+
+
 # create a script to print the version; the version arg comes from the variable
 # passed when building the image
 ARG version=0.1
@@ -146,6 +165,15 @@ RUN printf "#!/usr/bin/bash\necho HEASARC Sciserver version: $version\necho Buil
 RUN chown $user:$user -R /opt/heasoft /home/$user
 ## --------------- ##
 USER $user
+
+# Disable the annoucements extension
+RUN jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
+
+# Copy our startup script to set landing page and default kernel
+COPY startup.sh /opt/startup.sh
+## copy some setting files
+COPY --chown=1000:1000 overrides.json /home/$user/miniconda3/share/jupyter/lab/settings/overrides.json
+## ----------------------- ##
 
 
 # add .bashrc from the user's persistent space

@@ -1,6 +1,6 @@
 {
     "heasoft": {
-        "version": "6.32.1"
+        "version": "6.33"
     },
     
     "ciao": {
@@ -13,9 +13,9 @@
     },
     
     "xmmsas": {
-        "version": "20.0.0",
-        "ubuntu_version": "20.04",
-        "pyversion": "3.9"
+        "version": "21.0.0",
+        "ubuntu_version": "22.04",
+        "pyversion": "3.10"
     },
     
     "spex": {

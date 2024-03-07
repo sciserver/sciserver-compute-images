@@ -110,6 +110,7 @@ RUN bash heasoft-setup.sh ${headata} \
  && mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
  && mv activate*sh miniconda3/envs/${pythonenv}/etc/conda/activate.d \
  \
- && printf "source activate ${pythonenv}" >> ~/.bashrc \
+ && printf "conda activate ${pythonenv}" >> ~/.bashrc \
+ && printf "conda activate ${pythonenv}" >> ~/.tcshrc \
  && rm heasoft-setup.sh
 ## ------------------- ##

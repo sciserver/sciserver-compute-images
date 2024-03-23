@@ -85,8 +85,7 @@ USER $user
 # Get tutorial notebooks #
 # the selection of langing page is done in startup.sh
 RUN cd /home/$user/workspace \
- #&& git clone https://github.com/HEASARC/sciserver_cookbooks.git \
- && git clone -b switch-to-md https://github.com/zoghbi-a/sciserver_cookbooks.git \
+ && git clone https://github.com/HEASARC/sciserver_cookbooks.git \
  && cd sciserver_cookbooks 
 
 
@@ -138,7 +137,10 @@ RUN JS9_SHA=be9a644 \
   && wget -q https://github.com/duytnguyendtn/js9/archive/${JS9_SHA}.zip \
   && unzip ${JS9_SHA}.zip \
   && rm ${JS9_SHA}.zip \
-  && mv js9-${JS9_SHA}* /opt/js9
+  && mv js9-${JS9_SHA}* /opt/js9 \
+  # Temporary fix for require (REMOVE when fixed upstream)
+  && sed -i 's/require=(/var require=(/' /opt/js9/js9plugins.js
+
 
 USER $user
 # 2bfcb136802f23f1fab7d259a791b6e5ee5322bf
@@ -162,7 +164,7 @@ RUN printf "#!/usr/bin/bash\necho HEASARC Sciserver version: $version\necho Buil
     > /usr/local/bin/heasarc-sciserver-version && \
     chmod +x /usr/local/bin/heasarc-sciserver-version
 ## Fix permissions ##
-RUN chown $user:$user -R /opt/heasoft /home/$user
+RUN chown $user:$user -R /opt/heasoft /home/$user /opt/js9
 ## --------------- ##
 USER $user
 

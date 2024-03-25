@@ -1,6 +1,4 @@
 [begin] (Fluxbox)
-
-
    [submenu] (Applications) {}
         [exec] (ds9) {ds9} <>
         [exec] (xterm) {xterm} <>

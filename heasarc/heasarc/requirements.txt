@@ -1,4 +1,3 @@
-ipykernel
 wurlitzer
 pyvo
 scikit-learn
@@ -12,4 +11,3 @@ seaborn
 specutils
 aplpy
 pygments
-jupyterlab-git

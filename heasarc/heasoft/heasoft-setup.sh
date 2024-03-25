@@ -2,7 +2,7 @@
 
 headata=$1
 
-caldbErr="\\\n** HEASARC data Volume was not mounted. Please do that when creating the container. **\\\n"
+caldbErr="** HEASARC data Volume was not mounted. Please do that when creating the container. **"
 HEADAS=`ls -d /opt/heasoft/x86_64*`
 CALDB=${headata}/caldb
 
@@ -12,9 +12,9 @@ export HEADAS=$HEADAS
 export CALDB=$CALDB
 source \$HEADAS/headas-init.sh
 if [ -d \$CALDB ]; then
-   source \$CALDB/software/tools/caldbinit.sh
+   . \$CALDB/software/tools/caldbinit.sh
 else
-   printf \"${caldbErr}\"
+   printf \"\\n${caldbErr}\\n\"
 fi
 " > activate_heasoft.sh
 
@@ -24,9 +24,9 @@ echo "
 setenv HEADAS $HEADAS
 setenv CALDB $CALDB
 source \$HEADAS/headas-init.csh
-if [ -d \$CALDB ]; then
+if ( -d \$CALDB ) then
    source \$CALDB/software/tools/caldbinit.csh
 else
-   printf \"${caldbErr}\"
-fi
+   printf \"\\n${caldbErr}\\n\"
+endif
 " > activate_heasoft.csh

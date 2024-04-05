@@ -10,7 +10,7 @@ CALDB=${headata}/caldb
 echo "
 export HEADAS=$HEADAS
 export CALDB=$CALDB
-source \$HEADAS/headas-init.sh
+. \$HEADAS/headas-init.sh
 if [ -d \$CALDB ]; then
    . \$CALDB/software/tools/caldbinit.sh
 else

@@ -56,9 +56,9 @@ RUN mamba run -n $pythonenv pip install -r ${xmmsas_dir}/sas_${version}_python_p
 ## --------------------------- ##
 
 ## add pysas from GOF ##
-RUN git clone https://github.com/rjtanner/pysas.git \
+RUN git clone https://github.com/XMMGOF/pysas.git \
  && cd pysas \
- && git checkout ffed185 \
+ && git checkout b509ff0 \
  && rm -rf .git \
  && cd .. && mv pysas miniconda3/envs/${pythonenv}/lib/python${pyversion}/
 ## ------------ ## 
@@ -71,10 +71,12 @@ RUN git clone https://github.com/rjtanner/pysas.git \
 RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
  && mkdir -p miniconda3/envs/${pythonenv}/etc/conda/deactivate.d \
  && printf "\n\
+export HEADAS=`ls -d /opt/heasoft/x86_64-*` \n\
+. $HEADAS/headas-init.sh \n\
 export SAS_DIR=`ls -d ${xmmsas_dir}/xmmsas_*` \n\
 export SAS_CCFPATH=${ccfpath} \n\
 export PATH=~/miniconda3/envs/${pythonenv}/bin:$PATH\n\
-source \$SAS_DIR/setsas.sh \n\
+. \$SAS_DIR/setsas.sh \n\
 if ! [ -d $headata ]; then \n \
    printf '\\\n** HEASARC data Volume is needed for SAS_CCFPATH. Please mount it when creating the container **\\\n' \n\
 fi \n\
@@ -85,6 +87,8 @@ export LD_LIBRARY_PATH=\$SAS_PREV_LD_LIBRARY_PATH \n\
 " > miniconda3/envs/${pythonenv}/etc/conda/deactivate.d/deactivate_xmmsas.sh \
  \
  && printf "\n\
+setenv HEADAS `ls -d /opt/heasoft/x86_64-*`\n\
+source $HEADAS/headas-init.csh \n\
 setenv SAS_DIR `ls -d ${xmmsas_dir}/xmmsas_*` \n\
 setenv SAS_CCFPATH ${ccfpath} \n\
 setenv PATH ~/miniconda3/envs/${pythonenv}/bin:$PATH\n\

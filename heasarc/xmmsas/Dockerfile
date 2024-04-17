@@ -72,11 +72,11 @@ RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
  && mkdir -p miniconda3/envs/${pythonenv}/etc/conda/deactivate.d \
  && printf "\n\
 export HEADAS=`ls -d /opt/heasoft/x86_64-*` \n\
-. $HEADAS/headas-init.sh \n\
+source \$HEADAS/headas-init.sh \n\
 export SAS_DIR=`ls -d ${xmmsas_dir}/xmmsas_*` \n\
 export SAS_CCFPATH=${ccfpath} \n\
 export PATH=~/miniconda3/envs/${pythonenv}/bin:$PATH\n\
-. \$SAS_DIR/setsas.sh \n\
+source \$SAS_DIR/setsas.sh \n\
 if ! [ -d $headata ]; then \n \
    printf '\\\n** HEASARC data Volume is needed for SAS_CCFPATH. Please mount it when creating the container **\\\n' \n\
 fi \n\
@@ -88,7 +88,7 @@ export LD_LIBRARY_PATH=\$SAS_PREV_LD_LIBRARY_PATH \n\
  \
  && printf "\n\
 setenv HEADAS `ls -d /opt/heasoft/x86_64-*`\n\
-source $HEADAS/headas-init.csh \n\
+source \$HEADAS/headas-init.csh \n\
 setenv SAS_DIR `ls -d ${xmmsas_dir}/xmmsas_*` \n\
 setenv SAS_CCFPATH ${ccfpath} \n\
 setenv PATH ~/miniconda3/envs/${pythonenv}/bin:$PATH\n\

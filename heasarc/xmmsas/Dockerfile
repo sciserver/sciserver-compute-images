@@ -75,7 +75,7 @@ export HEADAS=`ls -d /opt/heasoft/x86_64-*` \n\
 source \$HEADAS/headas-init.sh \n\
 export SAS_DIR=`ls -d ${xmmsas_dir}/xmmsas_*` \n\
 export SAS_CCFPATH=${ccfpath} \n\
-export PATH=~/miniconda3/envs/${pythonenv}/bin:$PATH\n\
+export PATH=~/miniconda3/envs/${pythonenv}/bin:\$PATH\n\
 source \$SAS_DIR/setsas.sh \n\
 if ! [ -d $headata ]; then \n \
    printf '\\\n** HEASARC data Volume is needed for SAS_CCFPATH. Please mount it when creating the container **\\\n' \n\
@@ -91,7 +91,7 @@ setenv HEADAS `ls -d /opt/heasoft/x86_64-*`\n\
 source \$HEADAS/headas-init.csh \n\
 setenv SAS_DIR `ls -d ${xmmsas_dir}/xmmsas_*` \n\
 setenv SAS_CCFPATH ${ccfpath} \n\
-setenv PATH ~/miniconda3/envs/${pythonenv}/bin:$PATH\n\
+setenv PATH ~/miniconda3/envs/${pythonenv}/bin:\$PATH\n\
 source \$SAS_DIR/setsas.csh \n\
 if ! ( -d $headata ) then \n \
    printf '\\\n** HEASARC data Volume is needed for SAS_CCFPATH. Please mount it when creating the container **\\\n' \n\

@@ -56,11 +56,11 @@ RUN mamba run -n $pythonenv pip install -r ${xmmsas_dir}/sas_${version}_python_p
 ## --------------------------- ##
 
 ## add pysas from GOF ##
-RUN git clone https://github.com/XMMGOF/pysas.git \
- && cd pysas \
- && git checkout b509ff0 \
- && rm -rf .git \
- && cd .. && mv pysas miniconda3/envs/${pythonenv}/lib/python${pyversion}/
+ENV PYSAS_VERSION=1.4.1a
+RUN wget https://github.com/XMMGOF/pysas/archive/refs/tags/v${PYSAS_VERSION}.tar.gz \
+ && tar -zxvf v${PYSAS_VERSION}.tar.gz \
+ && rm v${PYSAS_VERSION}.tar.gz \
+ && mv pysas-${PYSAS_VERSION} miniconda3/envs/${pythonenv}/lib/python${pyversion}/pysas
 ## ------------ ## 
 
 
@@ -77,6 +77,9 @@ export SAS_DIR=`ls -d ${xmmsas_dir}/xmmsas_*` \n\
 export SAS_CCFPATH=${ccfpath} \n\
 export PATH=~/miniconda3/envs/${pythonenv}/bin:\$PATH\n\
 source \$SAS_DIR/setsas.sh \n\
+# pysas from the GOF takes priority\n\
+export SAS_PREV_PYTHONPATH=\$PYTHONPATH\n\
+export PYTHONPATH=~/miniconda3/envs/${pythonenv}/lib/python${pyversion}:\$PYTHONPATH\n\
 if ! [ -d $headata ]; then \n \
    printf '\\\n** HEASARC data Volume is needed for SAS_CCFPATH. Please mount it when creating the container **\\\n' \n\
 fi \n\
@@ -84,6 +87,7 @@ fi \n\
  && printf "\n\
 export PATH=\$SAS_PREV_PATH \n\
 export LD_LIBRARY_PATH=\$SAS_PREV_LD_LIBRARY_PATH \n\
+export PYTHONPATH=\$SAS_PREV_PYTHONPATH \n\
 " > miniconda3/envs/${pythonenv}/etc/conda/deactivate.d/deactivate_xmmsas.sh \
  \
  && printf "\n\
@@ -93,6 +97,9 @@ setenv SAS_DIR `ls -d ${xmmsas_dir}/xmmsas_*` \n\
 setenv SAS_CCFPATH ${ccfpath} \n\
 setenv PATH ~/miniconda3/envs/${pythonenv}/bin:\$PATH\n\
 source \$SAS_DIR/setsas.csh \n\
+# pysas from the GOF takes priority\n\
+setenv SAS_PREV_PYTHONPATH \$PYTHONPATH\n\
+setenv PYTHONPATH ~/miniconda3/envs/${pythonenv}/lib/python${pyversion}:\$PYTHONPATH\n\
 if ! ( -d $headata ) then \n \
    printf '\\\n** HEASARC data Volume is needed for SAS_CCFPATH. Please mount it when creating the container **\\\n' \n\
 endif \n\
@@ -100,6 +107,7 @@ endif \n\
  && printf "\n\
 setenv PATH \$SAS_PREV_PATH \n\
 setenv LD_LIBRARY_PATH \$SAS_PREV_LD_LIBRARY_PATH \n\
+setenv PYTHONPATH \$SAS_PREV_PYTHONPATH \n\
 " > miniconda3/envs/${pythonenv}/etc/conda/deactivate.d/deactivate_xmmsas.csh
 ## ------------------- ##
 

@@ -4,3 +4,4 @@ ghostscript
 vim
 screen
 rename
+emacs

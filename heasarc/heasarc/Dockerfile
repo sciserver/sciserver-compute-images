@@ -177,6 +177,8 @@ COPY startup.sh /opt/startup.sh
 COPY --chown=1000:1000 overrides.json /home/$user/miniconda3/share/jupyter/lab/settings/overrides.json
 ## ----------------------- ##
 
+## make sure the image has the build-in conda environment setup. Needed for batch jobs
+RUN python -m nb_conda_kernels list
 
 # add .bashrc from the user's persistent space
 RUN printf "\n\

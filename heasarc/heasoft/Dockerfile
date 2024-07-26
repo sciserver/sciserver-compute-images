@@ -38,11 +38,6 @@ COPY requirements.txt .
 RUN mamba create -y -n ${pythonenv} python=3.10 --file requirements.txt \
  && mamba clean -y --all \
  && rm -rf miniconda3/pkgs/* requirements.txt
- 
-# needed to get conda to work properly
-ENV BASH_ENV=~/.bashrc
-ENV SHELL=/bin/bash
-SHELL ["/bin/bash", "-c"]
 ## ------------------------------ ##
 
 
@@ -55,7 +50,6 @@ SHELL ["/bin/bash", "-c"]
 USER root
 WORKDIR /home/$user
 
-ENV PYTHON=/home/$user/miniconda3/envs/$pythonenv/bin/python
 ARG heasoft_tarfile_suffix=src_no_xspec_modeldata
 RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/heasoft-${version}${heasoft_tarfile_suffix}.tar.gz \
  && tar xzvf heasoft-${version}${heasoft_tarfile_suffix}.tar.gz \
@@ -70,6 +64,7 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/
 ## ------------------------------- ##
 ## Configure, make, and install ...
  && cd BUILD_DIR/ \
+ && export PYTHON=/home/$user/miniconda3/envs/$pythonenv/bin/python \
  && ./configure --prefix=/opt/heasoft 2>&1 | tee config.log.txt \
  \
  \
@@ -115,7 +110,7 @@ RUN bash heasoft-setup.sh ${headata} \
  && mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
  && mv activate*sh miniconda3/envs/${pythonenv}/etc/conda/activate.d \
  \
- && printf "source activate ${pythonenv}" >> ~/.bashrc \
- && printf "source activate ${pythonenv}" >> ~/.cshrc \
+ && printf "conda activate ${pythonenv}" >> ~/.bashrc \
+ && printf "conda activate ${pythonenv}" >> ~/.tcshrc \
  && rm heasoft-setup.sh
 ## ------------------- ##

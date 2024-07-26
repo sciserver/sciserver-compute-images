@@ -9,9 +9,6 @@ ARG pyversion=3.9
 
 ARG spex_dir=/opt/spex
 
-#
-
-
 ## ------------------------- ##
 ## Create a spex conda env   ##
 USER $user

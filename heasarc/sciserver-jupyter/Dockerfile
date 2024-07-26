@@ -17,7 +17,7 @@ USER idies
 
 WORKDIR /home/idies
 
-RUN curl -L "https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/Miniforge3-23.3.1-1-Linux-x86_64.sh" -o miniconda.sh \
+RUN curl -L "https://github.com/conda-forge/miniforge/releases/download/23.11.0-0/Mambaforge-23.11.0-0-Linux-x86_64.sh" -o miniconda.sh \
     && bash miniconda.sh -b -p /home/idies/miniconda3 \
     && rm -f miniconda.sh \
     && rm -rf /home/idies/miniconda3/pkgs/*
@@ -25,10 +25,13 @@ RUN curl -L "https://github.com/conda-forge/miniforge/releases/download/23.3.1-1
 ENV PATH /home/idies/miniconda3/bin:$PATH
 
 RUN mamba install -y -c conda-forge \
-        jupyterlab=3.5.0 \
-        pip=23.0.1 \
+        jupyterlab=4.1.2 \
+        pip=24.0 \
     && conda clean -y --all \
-    && jupyter kernelspec remove -f python3 \
     && rm -rf /home/idies/miniconda3/pkgs/*
+
+ENV SHELL=/bin/bash
+RUN conda init bash \
+ && conda init tcsh
 
 COPY startup.sh /opt/startup.sh

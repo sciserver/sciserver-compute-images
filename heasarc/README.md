@@ -110,15 +110,15 @@ Starts from Ubuntu v22.04, creates `idies` user and install some base linux tool
 ### heasarc:
 This is the final image that will be used by the enduser.
 
-- Here we are using the heasoft as our default environment, and we have notejs already installed system-wide in `sciserver-jupyter` above.
 - Install any additional linux software: e.g. `vim`, `unzip` etc.
+- Add ipykernel/sciserver to all conda evironments so they can run as kernels.
 - Install the WWT jupyterlab extension.
-- Add all the conda environment created so far as kernels. Remove the default python3 kernel as we are setting heasoft as the default.
+- Install nb_conda_kernels (show conda envs as kernels) jupytext (Run markdown files as notebooks).
 - Install extra python libraries that the user may find useful from `requirements.txt`. Also install the sciserver python package.
-- Install any additional jupyterlab extensions: e.g. `jupyterlab-git`
-- Rebuild jupyterlab activate extension.
-- As root, copy some useful files to their location.
 - Clone sciserver_cookbooks git repo, and setup the default landing page.
+
+- As root, copy some useful files to their location.
+- Install ds9 and jdaviz
 
 
 ### Development:
@@ -127,4 +127,4 @@ Abdu Zoghbi.
 
 
 ---
-Last updated: 2023/10/30 by Abdu Zoghbi.
+Last updated: 2023/12/08 by Abdu Zoghbi.

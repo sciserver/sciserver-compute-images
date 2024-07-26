@@ -1,0 +1,4 @@
+envs_dirs:
+  - /home/idies/workspace/Storage/*/persistent/users_conda_envs
+channels:
+- conda-forge

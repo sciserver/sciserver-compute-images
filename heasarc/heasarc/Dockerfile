@@ -2,7 +2,6 @@ FROM xmmsas:latest
 
 ARG headata=/home/idies/workspace/headata/FTP
 ARG user=idies
-ARG pythonenv=heasoft
 
 
 ## ----------------------- ##
@@ -26,46 +25,46 @@ WORKDIR /home/$user
 
 ## ------------------------------ ##
 ## A few additions to the kernels ##
-COPY --chown=$user kernel.json kernel-additions.sh ./
-COPY kernel-run.sh /opt/
+COPY --chown=1000:1000 kernel-additions.sh ./
 RUN bash kernel-additions.sh && \
-    rm kernel.json kernel-additions.sh && \ 
+    rm kernel-additions.sh && \ 
     mamba clean -y --all && rm -rf /home/$user/miniconda3/pkgs/*
 ## ------------------------------ ##
 
 
 ## ------------------------ ##
 ## Install WWT labextension ##
-RUN mamba run -n ${pythonenv} pip install pywwt wwt_kernel_data_relay && \
-    mamba run -n ${pythonenv} jupyter labextension install @wwtelescope/jupyterlab && \
+RUN pip install pywwt wwt_kernel_data_relay && \
+    jupyter labextension install @wwtelescope/jupyterlab && \
     pip cache purge
 ## ------------------------ ##
+
+# Custom condarc; install nb_conda_kernels to add conda env to jupyter
+# and also handle user environments
+COPY --chown=1000:1000 condarc /home/$user/miniconda3/.condarc
+COPY --chown=1000:1000 nb_conda_kernels.json /home/$user/miniconda3/etc/jupyter/jupyter_config.json
+RUN mamba install nb_conda_kernels jupytext=1.16.0 \
+ && mamba clean -y --all && rm -rf /home/$user/miniconda3/pkgs/*
 
 
 
 ## ------------------------------ ##
 ## Install extra python libraries ##
 ADD requirements.txt requirements.txt
-RUN mamba install -n ${pythonenv} -y -c conda-forge --file requirements.txt \
+RUN mamba install -n heasoft -y -c conda-forge --file requirements.txt \
  && mamba clean -y --all && rm requirements.txt \
- && rm -rf /home/$user/miniconda3/pkgs/*
+ && rm -rf /home/$user/miniconda3/pkgs/* \
+ && pip install jupyterlab-git jupyterlab-execute-time \
+ && pip cache purge
 ## ------------------------------ ##
 
-
-
-
-## copy some setting files ##
-COPY overrides.json /home/$user/miniconda3/envs/${pythonenv}/share/jupyter/lab/settings/overrides.json
-## ----------------------- ##
 
 
 ## -------------------------- ##
 ## other setup things as root ##
 ## -------------------------- ##
 
-# copy out startup.sh to /opt/
 USER root
-
 # fix yarn & clean cache
 RUN apt-get -y remove cmdtest yarn \
  && npm install -g yarn
@@ -74,22 +73,8 @@ RUN yarn cache clean
 USER root
 
 
-# Copy jupyter-lab startup script
-COPY startup.sh /opt/startup.sh
-RUN chmod +x /opt/startup.sh
-
 # create symlink for Hesarc data volume
 RUN ln -s $headata /FTP
-
-## update heasoftpy ##
-# ARG SHA=7e410150f6259a3bba894ed25841d33c346076bb
-# RUN wget https://github.com/HEASARC/heasoftpy/archive/$SHA.zip \
-#  && unzip $SHA.zip && rm -f $SHA.zip \
-#  && cd heasoftpy-$SHA \
-#  && conda run -n $pythonenv python setup.py build \
-#  && cp -r build/lib/heasoftpy/* /opt/heasoft/x86_64-*/lib/python/heasoftpy/ \
-#  && cd .. && rm -rf heasoftpy-$SHA 
-## ---------------- ##
 
 
 USER $user
@@ -102,18 +87,6 @@ USER $user
 RUN cd /home/$user/workspace \
  && git clone https://github.com/HEASARC/sciserver_cookbooks.git \
  && cd sciserver_cookbooks 
-
-# add entry.sh as an entrypoint script, which calls .bashrc before execution; 
-# Needed for running batch jobs.
-# When the container is run without starting jupyter-lab (i.e. without calling /opt/startup.sh), 
-# all commands are executed though this entry.sh script, which sets the default conda environment to heasoft
-# e.g. 'docker run --rm heasarc which python' should give: /home/idies/miniconda3/envs/heasoft/bin/python
-USER root
-COPY entry.sh /opt/entry.sh
-RUN chmod +x /opt/entry.sh
-ENTRYPOINT ["/opt/entry.sh"]
-CMD ["/bin/bash"]
-USER $user
 
 
 ## ds9 and vnc ##
@@ -131,19 +104,19 @@ RUN curl -L -O https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION
 
 # ds9; this needs libxss1 that should've been installed above
 ARG DS9_VERSION=8.4.1
-RUN wget -q https://ds9.si.edu/download/ubuntu20/ds9.ubuntu20.${DS9_VERSION}.tar.gz && \
+RUN wget -q https://ds9.si.edu/archive/ubuntu20/ds9.ubuntu20.${DS9_VERSION}.tar.gz && \
     tar -zxf ds9.ubuntu20.${DS9_VERSION}.tar.gz && \
     chmod +x ds9 && \
     mv ds9 /usr/local/bin && \
     rm ds9.ubuntu20.${DS9_VERSION}.tar.gz
-ADD ds9/config config
+ADD --chown=1000:1000 ds9/config config
 RUN cd config && bash distribute.sh && cd .. && rm -rf config
 ENV DISPLAY=:1
 
 USER $user
-RUN mamba install -n $pythonenv -y -c conda-forge websockify supervisor -y && \
+RUN mamba install -y -c conda-forge websockify supervisor -y && \
     mamba clean -y --all && \
-    mamba run -n $pythonenv pip install jupyter-server-proxy && \
+    pip install jupyter-server-proxy && \
     pip cache purge
 ## ----------- ##
 
@@ -154,9 +127,34 @@ RUN mamba install -n $pythonenv -y -c conda-forge websockify supervisor -y && \
 ## jupyter_server_terminals | error adding extension (enabled: True): Jupyter Server Terminals requires Jupyter Server 2.0+
 ## The terminal seems to be working fine despite that. Once voila is updated to use jupyter-server=2, this
 ## should disappear
-RUN conda run -n $pythonenv pip install jdaviz && pip cache purge \
- && conda run -n $pythonenv jupyter lab build
+RUN mamba run -n heasoft pip install jdaviz && mamba run -n heasoft pip cache purge \
+ && pip install jdaviz && pip cache purge
 ## -------------- ##
+
+## JS9 from Duy ##
+USER root
+RUN JS9_SHA=be9a644 \
+  && wget -q https://github.com/duytnguyendtn/js9/archive/${JS9_SHA}.zip \
+  && unzip ${JS9_SHA}.zip \
+  && rm ${JS9_SHA}.zip \
+  && mv js9-${JS9_SHA}* /opt/js9 \
+  # Temporary fix for require (REMOVE when fixed upstream)
+  && sed -i 's/require=(/var require=(/' /opt/js9/js9plugins.js
+
+
+USER $user
+# 2bfcb136802f23f1fab7d259a791b6e5ee5322bf
+ENV INSTALL_JS9=false
+RUN JPYJS9_SHA=2bfcb136 \
+ && mkdir -p ~/.local/share/jupyterjs9 \
+ && ln -s /opt/js9 /home/$user/.local/share/jupyterjs9/ \
+ && git clone -b jupyterjs9 https://github.com/duytnguyendtn/jpyjs9 \
+ && cd jpyjs9 && git checkout ${JPYJS9_SHA} && cd .. \
+ && pip install ./jpyjs9 \
+ && for cenv in heasoft ciao xmmsas fermi; do conda run -n $cenv pip install ./jpyjs9; done \
+ && rm -rf jpyjs9 && pip cache purge
+## ------------ ##
+
 
 # create a script to print the version; the version arg comes from the variable
 # passed when building the image
@@ -166,10 +164,21 @@ RUN printf "#!/usr/bin/bash\necho HEASARC Sciserver version: $version\necho Buil
     > /usr/local/bin/heasarc-sciserver-version && \
     chmod +x /usr/local/bin/heasarc-sciserver-version
 ## Fix permissions ##
-RUN chown $user:$user -R /opt/heasoft /home/$user
+RUN chown $user:$user -R /opt/heasoft /home/$user /opt/js9
 ## --------------- ##
 USER $user
 
+# Disable the annoucements extension
+RUN jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
+
+# Copy our startup script to set landing page and default kernel
+COPY startup.sh /opt/startup.sh
+## copy some setting files
+COPY --chown=1000:1000 overrides.json /home/$user/miniconda3/share/jupyter/lab/settings/overrides.json
+## ----------------------- ##
+
+## make sure the image has the build-in conda environment setup. Needed for batch jobs
+RUN python -m nb_conda_kernels list
 
 # add .bashrc from the user's persistent space
 RUN printf "\n\

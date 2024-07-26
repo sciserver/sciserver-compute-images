@@ -39,3 +39,23 @@
 - Upgrade node in sciserver-jupyter to v20
 - Update ds9 to v8.5
 - Added (this) Changelog.
+
+# Version 0.5
+---
+- Add navo-workshop Dockerfile. This is independent of the heasoft and other builds.
+
+# Version 0.6
+---
+- Update heasoft to v6.33
+- Update CIAO to v4.16
+- Update SAS to v21.0
+- Switch to running jupyter in the base environment, not heasoft
+- Add jupytext, and make it a default reader for .md files.
+- User conda envs are in persistent/users_conda_envs (defined in condarc).
+- Add nb_conda_kernels to handle conda environments (builtin and from the user).
+- Fix ghostscript conflict and tcsh initialization in xmmsas
+- update ds9 download to use archive links so they persist when new versions are added
+- Add back csh initializations
+- Add jupyterlab-execute-time
+- Add support for a user's bashrc under /home/${user}/workspace/Storage/*/persistent/.bashrc.
+- Add JS9

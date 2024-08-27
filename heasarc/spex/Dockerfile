@@ -30,7 +30,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 ENV SPEX90=${spex_dir}/SPEX-${version}-Linux
-RUN wget https://zenodo.org/record/7777289/files/spex-${version}-Linux-Intel.tar.gz?download=1 -O spex.tar.gz \
+# NOTE that the zenodo link depends on the version, so this needs to be updated by hand
+RUN wget https://zenodo.org/records/12771915/files/spex-3.08.01-Linux-Intel.tar.gz?download=1 -O spex.tar.gz \
  && tar -zxvf spex.tar.gz \
  && rm spex.tar.gz
  

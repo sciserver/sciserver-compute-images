@@ -56,7 +56,7 @@ RUN mamba run -n $pythonenv pip install -r ${xmmsas_dir}/sas_${version}_python_p
 ## --------------------------- ##
 
 ## add pysas from GOF ##
-ENV PYSAS_VERSION=1.4.1a
+ENV PYSAS_VERSION=1.4.1b
 RUN wget https://github.com/XMMGOF/pysas/archive/refs/tags/v${PYSAS_VERSION}.tar.gz \
  && tar -zxvf v${PYSAS_VERSION}.tar.gz \
  && rm v${PYSAS_VERSION}.tar.gz \

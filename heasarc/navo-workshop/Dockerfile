@@ -1,6 +1,6 @@
-FROM sciserver-jupyter:v3.0
+FROM sciserver-jupyter:v3.2
 
-ARG version=012024
+ARG version=012025
 ARG user=idies
 
 USER $user

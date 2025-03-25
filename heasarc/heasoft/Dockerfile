@@ -3,6 +3,7 @@ FROM sciserver-jupyter:latest
 ARG version=6.31
 ARG headata=/home/idies/workspace/headata/FTP
 ARG user=idies
+ARG pyversion=3.12
 ARG pythonenv=heasoft
 
 
@@ -24,6 +25,7 @@ RUN apt-get update && apt-get -y install \
     xorg-dev \
     libcurl4 \
     libssl3 \
+    lynx \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -35,9 +37,9 @@ USER ${user}
 ## install heasoftpy dependencies ##
 ## these will need to be done automatically in the future
 COPY requirements.txt .
-RUN mamba create -y -n ${pythonenv} python=3.10 --file requirements.txt \
+RUN mamba create -y -n ${pythonenv} python=$pyversion --file requirements.txt \
  && mamba clean -y --all \
- && rm -rf miniconda3/pkgs/* requirements.txt
+ && rm -rf miniforge3/pkgs/* requirements.txt
 ## ------------------------------ ##
 
 
@@ -64,7 +66,7 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/
 ## ------------------------------- ##
 ## Configure, make, and install ...
  && cd BUILD_DIR/ \
- && export PYTHON=/home/$user/miniconda3/envs/$pythonenv/bin/python \
+ && export PYTHON=/home/$user/miniforge3/envs/$pythonenv/bin/python \
  && ./configure --prefix=/opt/heasoft 2>&1 | tee config.log.txt \
  \
  \
@@ -107,8 +109,8 @@ WORKDIR /home/$user
 
 COPY heasoft-setup.sh .
 RUN bash heasoft-setup.sh ${headata} \
- && mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
- && mv activate*sh miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+ && mkdir -p miniforge3/envs/${pythonenv}/etc/conda/activate.d \
+ && mv activate*sh miniforge3/envs/${pythonenv}/etc/conda/activate.d \
  \
  && printf "conda activate ${pythonenv}" >> ~/.bashrc \
  && printf "conda activate ${pythonenv}" >> ~/.tcshrc \

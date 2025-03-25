@@ -1,6 +1,6 @@
 #!/bin/bash
 
-/home/idies/miniconda3/bin/jupyter lab \
+/home/idies/miniforge3/bin/jupyter lab \
     --no-browser \
     --ip=* \
     --notebook-dir=/home/idies/workspace \

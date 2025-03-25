@@ -1,11 +1,13 @@
 {
     "heasoft": {
-        "version": "6.34"
+        "version": "6.35",
+        "pyversion": "3.12"
     },
     
     "ciao": {
-        "version": "4.16",
-        "heasoft_version": "6.34"
+        "version": "4.17",
+        "heasoft_version": "6.35",
+        "pyversion": "3.11"
     },
     
     "fermi": {
@@ -13,18 +15,18 @@
     },
     
     "xmmsas": {
-        "version": "21.0.0",
+        "version": "22.1.0",
         "ubuntu_version": "22.04",
-        "pyversion": "3.10"
+        "pyversion": "3.11"
     },
     
     "spex": {
         "version": "3.08.01",
-        "pyversion": "3.9"
+        "pyversion": "3.11"
     },
 
     "heasarc": {
-        "version": "0.7",
+        "version": "0.8",
         "NOVNC_VERSION": "1.3.0",
         "DS9_VERSION": "8.5"
     },

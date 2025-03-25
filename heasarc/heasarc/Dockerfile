@@ -28,7 +28,7 @@ WORKDIR /home/$user
 COPY --chown=1000:1000 kernel-additions.sh ./
 RUN bash kernel-additions.sh && \
     rm kernel-additions.sh && \ 
-    mamba clean -y --all && rm -rf /home/$user/miniconda3/pkgs/*
+    mamba clean -y --all && rm -rf /home/$user/miniforge3/pkgs/*
 ## ------------------------------ ##
 
 
@@ -41,10 +41,10 @@ RUN pip install pywwt wwt_kernel_data_relay && \
 
 # Custom condarc; install nb_conda_kernels to add conda env to jupyter
 # and also handle user environments
-COPY --chown=1000:1000 condarc /home/$user/miniconda3/.condarc
-COPY --chown=1000:1000 nb_conda_kernels.json /home/$user/miniconda3/etc/jupyter/jupyter_config.json
+COPY --chown=1000:1000 condarc /home/$user/miniforge3/.condarc
+COPY --chown=1000:1000 nb_conda_kernels.json /home/$user/miniforge3/etc/jupyter/jupyter_config.json
 RUN mamba install nb_conda_kernels jupytext=1.16.0 \
- && mamba clean -y --all && rm -rf /home/$user/miniconda3/pkgs/*
+ && mamba clean -y --all && rm -rf /home/$user/miniforge3/pkgs/*
 
 
 
@@ -53,7 +53,7 @@ RUN mamba install nb_conda_kernels jupytext=1.16.0 \
 ADD requirements.txt requirements.txt
 RUN mamba install -n heasoft -y -c conda-forge --file requirements.txt \
  && mamba clean -y --all && rm requirements.txt \
- && rm -rf /home/$user/miniconda3/pkgs/* \
+ && rm -rf /home/$user/miniforge3/pkgs/* \
  && pip install jupyterlab-git jupyterlab-execute-time \
  && pip cache purge
 ## ------------------------------ ##
@@ -121,34 +121,33 @@ RUN mamba install -y -c conda-forge websockify supervisor -y && \
 ## ----------- ##
 
 ## install jdaviz ##
-## NOTE: jdaviz needs voila, and currently voila 0.4.0 requires jupyter-server<2.0.0,>=1.18
-## so here, jupyter-server will be downgraded from 2.0 for this to work.
-## This will cause the following error when starting jupyterlab:
-## jupyter_server_terminals | error adding extension (enabled: True): Jupyter Server Terminals requires Jupyter Server 2.0+
-## The terminal seems to be working fine despite that. Once voila is updated to use jupyter-server=2, this
-## should disappear
 RUN mamba run -n heasoft pip install jdaviz && mamba run -n heasoft pip cache purge \
  && pip install jdaviz && pip cache purge
 ## -------------- ##
 
 ## JS9 from Duy ##
 USER root
-RUN JS9_SHA=be9a644 \
+RUN JS9_SHA=44ff078 \
   && wget -q https://github.com/duytnguyendtn/js9/archive/${JS9_SHA}.zip \
   && unzip ${JS9_SHA}.zip \
   && rm ${JS9_SHA}.zip \
-  && mv js9-${JS9_SHA}* /opt/js9 \
-  # Temporary fix for require (REMOVE when fixed upstream)
-  && sed -i 's/require=(/var require=(/' /opt/js9/js9plugins.js
+  && cd js9-${JS9_SHA}* \
+  && headir=`ls -d /opt/heasoft/x86_64*` \
+  # temporary; add frame_id.js to the installed dir. Remove once added upstream
+  && sed -i '/favicon.ico js9.html/s/$/ frame_id.js/' Makefile.in \
+  && ./configure --with-webdir=/opt/js9/ --with-cfitsio=$headir --prefix=/home/$user/miniforge3 --with-helper=nodejs \
+  && make \
+  #&& cd .. && mv js9-${JS9_SHA}* /opt/js9
+  && make install \
+  && cd .. && rm -rf js9-${JS9_SHA}*
 
 
 USER $user
-# 2bfcb136802f23f1fab7d259a791b6e5ee5322bf
 ENV INSTALL_JS9=false
-RUN JPYJS9_SHA=2bfcb136 \
+RUN JPYJS9_SHA=b469080 \
  && mkdir -p ~/.local/share/jupyterjs9 \
  && ln -s /opt/js9 /home/$user/.local/share/jupyterjs9/ \
- && git clone -b jupyterjs9 https://github.com/duytnguyendtn/jpyjs9 \
+ && git clone https://github.com/zoghbi-a/jpyjs9 \
  && cd jpyjs9 && git checkout ${JPYJS9_SHA} && cd .. \
  && pip install ./jpyjs9 \
  && for cenv in heasoft ciao xmmsas fermi; do conda run -n $cenv pip install ./jpyjs9; done \
@@ -164,17 +163,18 @@ RUN printf "#!/usr/bin/bash\necho HEASARC Sciserver version: $version\necho Buil
     > /usr/local/bin/heasarc-sciserver-version && \
     chmod +x /usr/local/bin/heasarc-sciserver-version
 ## Fix permissions ##
-RUN chown $user:$user -R /opt/heasoft /home/$user /opt/js9
+RUN find /home/${user} -regex '.*/\..*' -not -path "/home/${user}/miniforge3" -exec chown $user:$user {} + \
+ && chown -R $user:$user /opt/heasoft /opt/js9
 ## --------------- ##
 USER $user
 
-# Disable the annoucements extension
+# Disable the announcements extension
 RUN jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
 
 # Copy our startup script to set landing page and default kernel
 COPY startup.sh /opt/startup.sh
 ## copy some setting files
-COPY --chown=1000:1000 overrides.json /home/$user/miniconda3/share/jupyter/lab/settings/overrides.json
+COPY --chown=1000:1000 overrides.json /home/$user/miniforge3/share/jupyter/lab/settings/overrides.json
 ## ----------------------- ##
 
 ## make sure the image has the build-in conda environment setup. Needed for batch jobs

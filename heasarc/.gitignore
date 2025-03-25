@@ -1,4 +1,4 @@
-test/out_*
+tests/data
 *~
 */*~
 *.log

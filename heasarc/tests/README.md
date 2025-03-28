@@ -2,7 +2,7 @@
 To run the tests on the heasarc image that is already built, run as, e.g., :
 ```sh
 
-docker run --rm -it -p 8888:8888 -v ${PWD}:/home/idies/test -v ${PWD}/data/FTP/:/home/idies/workspace/headata/FTP heasarc:latest /opt/startup.sh
+docker run --rm -it -p 8888:8888 --network=host -v ${PWD}:/home/idies/test -v ${PWD}/data/FTP/:/home/idies/workspace/headata/FTP heasarc:latest /opt/startup.sh
 ```
 and then point your browser at the URL it will give you, e.g.,
 

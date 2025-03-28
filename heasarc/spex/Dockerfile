@@ -14,7 +14,7 @@ ARG spex_dir=/opt/spex
 USER $user
 RUN mamba create -y -n $pythonenv python=$pyversion numpy astropy sphinx sphinx-argparse \
  && conda clean -y --all \
- && rm -rf /home/$user/miniconda3/pkgs/*
+ && rm -rf /home/$user/miniforge3/pkgs/*
 ## ------------------------- ##
 
 
@@ -40,18 +40,18 @@ USER $user
 WORKDIR /home/${user}
 RUN mamba install -y -n $pythonenv -c spexxray pyspextools \
  && conda clean -y --all \
- && rm -rf /home/$user/miniconda3/pkgs/*
+ && rm -rf /home/$user/miniforge3/pkgs/*
 
 
 ## ------------------- ##
 ## Configure shells... ##
 # also, add a script in env/etc/conda/activate.d, so it runs 
 # when the envirenment is activated
-RUN mkdir -p miniconda3/envs/${pythonenv}/etc/conda/activate.d \
+RUN mkdir -p miniforge3/envs/${pythonenv}/etc/conda/activate.d \
  && printf "\n\
 export SPEX90=${spex_dir}/SPEX-${version}-Linux \n\
 source \$SPEX90/spexdist.sh \n\
-" > miniconda3/envs/${pythonenv}/etc/conda/activate.d/activate_spex.sh
+" > miniforge3/envs/${pythonenv}/etc/conda/activate.d/activate_spex.sh
 ## ------------------- ##
 
 

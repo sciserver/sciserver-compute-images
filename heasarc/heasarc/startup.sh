@@ -1,6 +1,12 @@
 #!/bin/bash
+user=idies
+# update the notebooks
+cd /home/$user/workspace/sciserver_cookbooks
+git pull origin main || echo "Notebook updated failed!"
+cd /home/$user
 
-/home/idies/miniconda3/bin/jupyter lab \
+
+/home/$user/miniforge3/bin/jupyter lab \
     --no-browser \
     --ip=* \
     --notebook-dir=/home/idies/workspace \

@@ -59,3 +59,15 @@
 - Add jupyterlab-execute-time
 - Add support for a user's bashrc under /home/${user}/workspace/Storage/*/persistent/.bashrc.
 - Add JS9
+
+# Version 0.7
+---
+- Update heasoft to v6.34
+
+# Version 0.8
+---
+- Update heasoft to v6.35 then v6.35.1
+- Switch heasoft to use conda
+- Update ciao, xmm-sas
+- Add support for large files in js9
+- Update python to 3.12 and get the latest conda and jupyterlab=4.3.6

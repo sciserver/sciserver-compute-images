@@ -1,3 +1,0 @@
-astropy-base
-scipy>=1.6
-matplotlib

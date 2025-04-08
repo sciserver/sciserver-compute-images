@@ -6,82 +6,17 @@ ARG user=idies
 ARG pyversion=3.12
 ARG pythonenv=heasoft
 
-
-# Install HEASoft prerequisites
-USER root
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get -y install \
-    gcc \
-    gfortran \
-    git \
-    g++ \
-    libncurses-dev \
-    libreadline-dev \
-    make \
-    ncurses-dev \
-    perl-modules \
-    tcsh \
-    wget \
-    xorg-dev \
-    libcurl4 \
-    libssl3 \
-    lynx \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /home/${user}
 USER ${user}
 
 
-## ------------------------------ ##
-## install heasoftpy dependencies ##
-## these will need to be done automatically in the future
-COPY requirements.txt .
-RUN mamba create -y -n ${pythonenv} python=$pyversion --file requirements.txt \
+## -------------------------- ##
+## install heasoft from conda ##
+RUN mamba create -y -n ${pythonenv} python=$pyversion heasoft=$version xspec-compilers \
+    -c https://heasarc.gsfc.nasa.gov/FTP/software/conda/ -c conda-forge \
  && mamba clean -y --all \
- && rm -rf miniforge3/pkgs/* requirements.txt
+ && rm -rf miniforge3/pkgs/* miniforge3/envs/${pythonenv}/heasoft/refdata/torus1006.fits
 ## ------------------------------ ##
-
-
-## --------------------------------------------- ##
-## Retrieve the HEASoft source code and untar... ##
-## The files in link_files.txt are large, remove ## 
-## them now we can add them later                ##
-## make sure to delete in the in same RUN,  or   ##
-## they will be checked in
-USER root
-WORKDIR /home/$user
-
-ARG heasoft_tarfile_suffix=src_no_xspec_modeldata
-RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/heasoft-${version}${heasoft_tarfile_suffix}.tar.gz \
- && tar xzvf heasoft-${version}${heasoft_tarfile_suffix}.tar.gz \
- && rm -f heasoft-${version}${heasoft_tarfile_suffix}.tar.gz \
- \
- ## Remove large files. We'll link them later
- && cd heasoft-${version} \
- && rm -f ftools/xstar/data/atdb.fits \
- && rm -f heasim/skyback/torus1006.fits \
- \
- \
-## ------------------------------- ##
-## Configure, make, and install ...
- && cd BUILD_DIR/ \
- && export PYTHON=/home/$user/miniforge3/envs/$pythonenv/bin/python \
- && ./configure --prefix=/opt/heasoft 2>&1 | tee config.log.txt \
- \
- \
- && make 2>&1 | tee build.log.txt \
- && make install 2>&1 | tee install.log.txt \
- && make clean 2>&1 \
- && gzip -9 *.log.txt && mv *.log.txt.gz /opt/heasoft \
- && cd /home/$user/heasoft-${version} \
- && cp -p Xspec/BUILD_DIR/hmakerc /opt/heasoft/x86_64*/bin/ \
- && cp -p Xspec/BUILD_DIR/Makefile-std /opt/heasoft/x86_64*/bin/ \
- && mv Release_Notes* /opt/heasoft/ \
- && cd /home/$user && rm -rf /home/$user/heasoft-${version}
-# ------------------------------- ##
-
-
 
 
 ## ---------------- ##
@@ -89,10 +24,10 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/lheasoft${version}/
 
 # Tweak Xspec settings for a no-X11 environment
 # add xspec and xstar model data from the data location in $headata
-RUN printf "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/scripts/global_customize.tcl \
+RUN printf "setplot splashpage off\ncpd /GIF\n" >> ~/miniforge3/envs/${pythonenv}/heasoft/spectral/scripts/global_customize.tcl \
  && HEAsrc=$headata/software/lheasoft/lheasoft${version}/heasoft-${version} \
- && refdata=`ls -d /opt/heasoft/x86_64*/refdata` \
- && ln -sf ${HEAsrc}/Xspec/src/spectral/modelData /opt/heasoft/spectral/modelData \
+ && refdata=`ls -d ~/miniforge3/envs/${pythonenv}/heasoft/refdata` \
+ && ln -sf ${HEAsrc}/Xspec/src/spectral/modelData ~/miniforge3/envs/${pythonenv}/heasoft/spectral/modelData \
  && ln -sf ${HEAsrc}/ftools/xstar/data/atdb.fits ${refdata} \
  && ln -sf ${HEAsrc}/heasim/skyback/torus1006.fits ${refdata}
 ## ---------------- ##
@@ -107,12 +42,12 @@ RUN printf "setplot splashpage off\ncpd /GIF\n" >> /opt/heasoft/spectral/scripts
 USER ${user}
 WORKDIR /home/$user
 
-COPY heasoft-setup.sh .
-RUN bash heasoft-setup.sh ${headata} \
+COPY caldb-setup.sh .
+RUN bash caldb-setup.sh ${headata} \
  && mkdir -p miniforge3/envs/${pythonenv}/etc/conda/activate.d \
- && mv activate*sh miniforge3/envs/${pythonenv}/etc/conda/activate.d \
+ && mv setup_caldb*sh miniforge3/envs/${pythonenv}/etc/conda/activate.d \
  \
  && printf "conda activate ${pythonenv}" >> ~/.bashrc \
  && printf "conda activate ${pythonenv}" >> ~/.tcshrc \
- && rm heasoft-setup.sh
+ && rm caldb-setup.sh
 ## ------------------- ##

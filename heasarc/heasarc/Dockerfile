@@ -132,7 +132,7 @@ RUN JS9_SHA=44ff078 \
   && unzip ${JS9_SHA}.zip \
   && rm ${JS9_SHA}.zip \
   && cd js9-${JS9_SHA}* \
-  && headir=`ls -d /opt/heasoft/x86_64*` \
+  && headir=/home/$user/miniforge3/envs/heasoft/heasoft \
   # temporary; add frame_id.js to the installed dir. Remove once added upstream
   && sed -i '/favicon.ico js9.html/s/$/ frame_id.js/' Makefile.in \
   && ./configure --with-webdir=/opt/js9/ --with-cfitsio=$headir --prefix=/home/$user/miniforge3 --with-helper=nodejs \
@@ -164,7 +164,7 @@ RUN printf "#!/usr/bin/bash\necho HEASARC Sciserver version: $version\necho Buil
     chmod +x /usr/local/bin/heasarc-sciserver-version
 ## Fix permissions ##
 RUN find /home/${user} -regex '.*/\..*' -not -path "/home/${user}/miniforge3" -exec chown $user:$user {} + \
- && chown -R $user:$user /opt/heasoft /opt/js9
+ && chown -R $user:$user /opt/js9
 ## --------------- ##
 USER $user
 

@@ -29,10 +29,14 @@ RUN mamba create -n ${pythonenv} -y -c conda-forge \
  && conda clean -y --all \
  && rm -rf /home/$user/miniforge3/pkgs/* \
  && rm -rf /home/${user}/miniforge3/envs/${pythonenv}/spectral/modelData \
- && ln -sf $headata/software/lheasoft/lheasoft${heasoft_version}/heasoft-${heasoft_version}/Xspec/src/spectral/modelData /home/${user}/miniforge3/envs/${pythonenv}/spectral/modelData \
+ && ln -sf $headata/software/lheasoft/lheasoft${heasoft_version}/heasoft-${heasoft_version}/Xspec/src/spectral/modelData \
+    /home/${user}/miniforge3/envs/${pythonenv}/spectral/modelData \
  \
  && rm -rf /home/${user}/miniforge3/envs/${pythonenv}/CALDB \
- && ln -s ${headata}/caldb /home/${user}/miniforge3/envs/${pythonenv}/CALDB
+ && ln -s ${headata}/caldb /home/${user}/miniforge3/envs/${pythonenv}/CALDB \
+ \
+ && cd /home/${user}/miniforge3/envs/${pythonenv}/etc/conda/activate.d \
+ && cp /home/${user}/miniforge3/envs/heasoft/etc/conda/activate.d/setup_caldb*sh .
 ## ------------------------------ ##
 
 

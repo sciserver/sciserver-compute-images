@@ -3,7 +3,7 @@
 This repo contains definitions for sciserver compute docker image builds. Each image consumed within SciServer has two components:
 
 * Science layer: this is the layer that contains specific packages and software useful for the computation necessary to
-  acheive a scientific analysis goal.
+  achieve a scientific analysis goal.
 
 * Compatibility layer: this contains the entrypoint commands and data necessary use within sciserver and interface to
   the user (e.g. Jupyter)

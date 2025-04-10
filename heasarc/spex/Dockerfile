@@ -12,7 +12,7 @@ ARG spex_dir=/opt/spex
 ## ------------------------- ##
 ## Create a spex conda env   ##
 USER $user
-RUN mamba create -y -n $pythonenv python=$pyversion numpy astropy sphinx sphinx-argparse \
+RUN mamba create -y -n $pythonenv python=$pyversion numpy astropy-base sphinx sphinx-argparse \
  && conda clean -y --all \
  && rm -rf /home/$user/miniforge3/pkgs/*
 ## ------------------------- ##

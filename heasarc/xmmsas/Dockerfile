@@ -65,7 +65,7 @@ RUN cd $HOME\
  && mkdir -p $HOME/miniforge3/envs/${pythonenv}/etc/conda/activate.d \
  && mkdir -p $HOME/miniforge3/envs/${pythonenv}/etc/conda/deactivate.d \
  && printf "\n\
-export HEADAS=`ls -d /opt/heasoft/x86_64-*` \n\
+export HEADAS=`dirname $CONDA_EXE`/../envs/heasoft/heasoft \n\
 source \$HEADAS/headas-init.sh \n\
 export SAS_DIR=`ls -d ${xmmsas_dir}/xmmsas_*` \n\
 export SAS_CCFPATH=${ccfpath} \n\
@@ -85,7 +85,7 @@ export PYTHONPATH=\$SAS_PREV_PYTHONPATH \n\
 " > miniforge3/envs/${pythonenv}/etc/conda/deactivate.d/deactivate_xmmsas.sh \
  \
  && printf "\n\
-setenv HEADAS `ls -d /opt/heasoft/x86_64-*`\n\
+setenv HEADAS `dirname $CONDA_EXE`/../envs/heasoft/heasoft\n\
 source \$HEADAS/headas-init.csh \n\
 setenv SAS_DIR `ls -d ${xmmsas_dir}/xmmsas_*` \n\
 setenv SAS_CCFPATH ${ccfpath} \n\

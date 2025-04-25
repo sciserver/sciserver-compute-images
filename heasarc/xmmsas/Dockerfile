@@ -45,7 +45,7 @@ RUN wget https://heasarc.gsfc.nasa.gov/FTP/xmm/software/sas/${version}/Linux/Ubu
 
 ## --------------------------- ##
 ## Install python dependencies ##
-RUN printf "aplpy\nxmmpysas" >> ${xmmsas_dir}/sas_python_packages.txt \
+RUN printf "aplpy\nxmmpysas\n" >> ${xmmsas_dir}/sas_python_packages.txt \
  && rm -rf ${xmmsas_dir}/xmmsas_*/lib/python/pysas
 USER $user
 WORKDIR /home/$user
@@ -65,7 +65,7 @@ RUN cd $HOME\
  && mkdir -p $HOME/miniforge3/envs/${pythonenv}/etc/conda/activate.d \
  && mkdir -p $HOME/miniforge3/envs/${pythonenv}/etc/conda/deactivate.d \
  && printf "\n\
-export HEADAS=`ls -d /opt/heasoft/x86_64-*` \n\
+export HEADAS=/home/idies/miniforge3/envs/heasoft/heasoft \n\
 source \$HEADAS/headas-init.sh \n\
 export SAS_DIR=`ls -d ${xmmsas_dir}/xmmsas_*` \n\
 export SAS_CCFPATH=${ccfpath} \n\
@@ -85,7 +85,7 @@ export PYTHONPATH=\$SAS_PREV_PYTHONPATH \n\
 " > miniforge3/envs/${pythonenv}/etc/conda/deactivate.d/deactivate_xmmsas.sh \
  \
  && printf "\n\
-setenv HEADAS `ls -d /opt/heasoft/x86_64-*`\n\
+setenv HEADAS /home/idies/miniforge3/envs/heasoft/heasoft\n\
 source \$HEADAS/headas-init.csh \n\
 setenv SAS_DIR `ls -d ${xmmsas_dir}/xmmsas_*` \n\
 setenv SAS_CCFPATH ${ccfpath} \n\

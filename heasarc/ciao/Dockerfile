@@ -36,7 +36,9 @@ RUN mamba create -n ${pythonenv} -y -c conda-forge \
  && ln -s ${headata}/caldb /home/${user}/miniforge3/envs/${pythonenv}/CALDB \
  \
  && cd /home/${user}/miniforge3/envs/${pythonenv}/etc/conda/activate.d \
- && cp /home/${user}/miniforge3/envs/heasoft/etc/conda/activate.d/setup_caldb*sh .
+ && cp /home/${user}/miniforge3/envs/heasoft/etc/conda/activate.d/setup_caldb*sh . \
+ # ensure env path takes precedence
+ && echo "export PATH=\$CONDA_PREFIX/bin:\$PATH" > /home/${user}/miniforge3/envs/$pythonenv/etc/conda/activate.d/path-fix.sh
 ## ------------------------------ ##
 
 

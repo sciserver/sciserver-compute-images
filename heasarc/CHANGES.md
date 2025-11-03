@@ -80,3 +80,6 @@
 ---
 - Update heasoft to 6.36
 - Update the base ubuntu image to 24.02
+
+# Version 0.10.1
+- Fix PATH variable for ciao and fermi environments

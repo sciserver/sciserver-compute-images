@@ -27,7 +27,8 @@ IMAGES = [
     'fermi',
     'spex',
     'xmmsas',
-    'heasarc'
+    'heasarc',
+    'sixte'
 ]
 
 

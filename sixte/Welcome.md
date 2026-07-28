@@ -18,12 +18,12 @@ You are now inside a Jupyterlab environment pre-configured with:
 
 ## Key Folder Paths
 
-* SIXTE source folder:
-* SIMPUT source installation:
-* SIXTE build:
-* SIMPUT build:
+* SIXTE source folder: /opt/sixte-src
+* SIMPUT source installation: /opt/simput-src/
+* SIXTE build: /opt/sixte/sixte
+* SIMPUT build: /opt/sixte/simput
 * Instrument files:
-* SIXTE Manual:
+* SIXTE Manual: sixte_cookbooks/simulator_manual.pdf
 
 ***
 

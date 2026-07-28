@@ -37,10 +37,5 @@
     
     "sciserver-base": {
         "version": "3.0"
-    },
-    
-    "sixte": {
-        "version": "3.4", 
-        "pyversion": "3.12" 
     }
 }

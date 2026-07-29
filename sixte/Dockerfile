@@ -1,6 +1,6 @@
 FROM containers.repo.sciserver.org/heasarc:v6.36
 
-ARG version=3.4.0
+ARG version=3.5.0
 ARG heasoft_version=6.36
 ARG headata=/home/idies/workspace/headata/FTP
 ARG user=idies

@@ -27,7 +27,7 @@ RUN apt-get update && apt-get -y install \
 #--------------------------
 # Clone and install SIMPUT
 #---------------------------
-RUN git clone http://www.sternwarte.uni-erlangen.de/git.public/simput.git /opt/simput-src && \
+RUN git clone http://www.sternwarte.uni-erlangen.de/git.public/current/simput.git /opt/simput-src && \
     cmake -S /opt/simput-src -B /opt/simput-src/build -DCMAKE_INSTALL_PREFIX=${SIMPUT_PREFIX} && \
     cmake --build /opt/simput-src/build --parallel 4 && \
     cmake --install /opt/simput-src/build 
@@ -35,7 +35,7 @@ RUN git clone http://www.sternwarte.uni-erlangen.de/git.public/simput.git /opt/s
 #-------------------------
 # Clone and install SIXTE
 #-------------------------
-RUN git clone http://www.sternwarte.uni-erlangen.de/git.public/sixt /opt/sixte-src && \
+RUN git clone http://www.sternwarte.uni-erlangen.de/git.public/current/sixt /opt/sixte-src && \
     cmake -S /opt/sixte-src -B /opt/sixte-src/build -DCMAKE_INSTALL_PREFIX=${SIXTE_DIR} -DSIMPUT_ROOT=${SIMPUT_PREFIX} && \
     cmake --build /opt/sixte-src/build --parallel 4 && \
     cmake --install /opt/sixte-src/build 

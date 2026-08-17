@@ -65,8 +65,8 @@ RUN conda create -y -n ${pythonenv} python=${pyversion} \
     conda run -n ${pythonenv} python -m ipykernel install --user \
         --name ${pythonenv} --display-name "${pythonenv}"
 
-RUN ACTUAL_HEADAS=$(bash -lc 'conda activate heasoft >/dev/null 2>&1; echo $HEADAS') && \
-    if [ -z "$ACTUAL_HEADAS" ]; then echo "ERROR: could not resolve HEADAS from the heasoft env -- check this manually before relying on the image" >&2; exit 1; fi && \
+RUN ACTUAL_HEADAS=/home/idies/miniforge3/envs/heasoft/heasoft && \
+    if [ ! -d "$ACTUAL_HEADAS" ]; then echo "ERROR: HEADAS not found at $ACTUAL_HEADAS -- check the heasoft env in the base image" >&2; exit 1; fi && \
     SIXTEENV_DIR="$(conda info --base)/envs/${pythonenv}" && \
     ACTIVATE_DIR="${SIXTEENV_DIR}/etc/conda/activate.d" && \
     mkdir -p "${ACTIVATE_DIR}" && \

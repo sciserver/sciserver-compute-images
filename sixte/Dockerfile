@@ -60,18 +60,19 @@ ENV locpfiles=/opt/pfiles \
 #---------------------------------------------------------------------------
 USER ${user}
  
-RUN conda create -y -n ${pythonenv} python=${pyversion} \
+RUN conda create -y -p /home/idies/miniforge3/envs/${pythonenv} python=${pyversion} \
         numpy scipy matplotlib astropy astroquery pandas pyvo ipykernel && \
-    conda run -n ${pythonenv} python -m ipykernel install --user \
+    conda run -p /home/idies/miniforge3/envs/${pythonenv} python -m ipykernel install --user \
         --name ${pythonenv} --display-name "${pythonenv}"
 
 RUN ACTUAL_HEADAS=/home/idies/miniforge3/envs/heasoft/heasoft && \
     if [ ! -d "$ACTUAL_HEADAS" ]; then echo "ERROR: HEADAS not found at $ACTUAL_HEADAS -- check the heasoft env in the base image" >&2; exit 1; fi && \
-    SIXTEENV_DIR="$(conda info --base)/envs/${pythonenv}" && \
+    SIXTEENV_DIR="/home/idies/miniforge3/envs/${pythonenv}" && \
     ACTIVATE_DIR="${SIXTEENV_DIR}/etc/conda/activate.d" && \
     mkdir -p "${ACTIVATE_DIR}" && \
     { \
       echo "export HEADAS=${ACTUAL_HEADAS}"; \
+      echo '. $HEADAS/headas-init.sh'; \
       echo "export SIXTE=${SIXTE}"; \
       echo "export SIMPUT=${SIMPUT}"; \
       echo "export PATH=${SIMPUT}/bin:${SIXTE}/bin:\$PATH"; \
@@ -82,14 +83,28 @@ RUN ACTUAL_HEADAS=/home/idies/miniforge3/envs/heasoft/heasoft && \
     } > "${ACTIVATE_DIR}/sixte.sh" && \
     chmod +x "${ACTIVATE_DIR}/sixte.sh"
 
+RUN { \
+      echo '#!/bin/bash'; \
+      echo '. /home/idies/miniforge3/envs/'"${pythonenv}"'/etc/conda/activate.d/sixte.sh'; \
+      echo 'exec /home/idies/miniforge3/envs/'"${pythonenv}"'/bin/python -m ipykernel_launcher "$@"'; \
+    } > /home/idies/miniforge3/envs/${pythonenv}/kernel-launch.sh && \
+    chmod +x /home/idies/miniforge3/envs/${pythonenv}/kernel-launch.sh && \
+    { \
+      echo '{'; \
+      echo '  "argv": ["/home/idies/miniforge3/envs/'"${pythonenv}"'/kernel-launch.sh", "-f", "{connection_file}"],'; \
+      echo '  "display_name": "'"${pythonenv}"'",'; \
+      echo '  "language": "python"'; \
+      echo '}'; \
+    } > /home/idies/.local/share/jupyter/kernels/${pythonenv}/kernel.json
 
 #------------------------------------
 # Copy relevant material
 #------------------------------------
 
-COPY simulator_manual.pdf /home/${user}/sixte_cookbooks/simulator_manual.pdf 
-COPY Welcome.md           /home/${user}/sixte_cookbooks/Welcome.md
-COPY SIXTE_Logo_White_BlueBKG_cut.png /home/${user}/sixte_cookbooks/SIXTE_Logo_White_BlueBKG_cut.png
+RUN mkdir -p /home/${user}/sixte_cookbooks/
+COPY simulator_manual.pdf /home/idies/sixte_cookbooks/simulator_manual.pdf
+COPY Welcome.md           /home/idies/sixte_cookbooks/Welcome.md
+COPY SIXTE_Logo_White_BlueBKG_cut.png /home/idies/sixte_cookbooks/SIXTE_Logo_White_BlueBKG_cut.png
 
 #---------------------------------------------------------------------------
 # JupyterLab: replace the welcome workspace with the SIXTE landing page

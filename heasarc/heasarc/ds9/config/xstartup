@@ -1,4 +1,6 @@
 #!/bin/sh
 
+ds9 &
+
 exec fluxbox
 

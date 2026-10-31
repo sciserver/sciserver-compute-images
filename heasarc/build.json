@@ -1,41 +1,16 @@
 {
-    "heasoft": {
-        "version": "6.36",
-        "pyversion": "3.12"
-    },
-    
-    "ciao": {
-        "version": "4.17",
-        "heasoft_version": "6.36",
-        "pyversion": "3.11"
-    },
-    
-    "fermi": {
-        "version": "2.4"
-    },
-    
-    "xmmsas": {
-        "version": "22.1.0",
-        "ubuntu_version": "24.04",
-        "pyversion": "3.11"
-    },
-    
-    "spex": {
-        "version": "3.08.01",
-        "pyversion": "3.11"
-    },
-
     "heasarc": {
-        "version": "0.10.1",
-        "NOVNC_VERSION": "1.3.0",
-        "DS9_VERSION": "8.5"
-    },
-    
-    "sciserver-jupyter": {
-        "version": "3.2"
-    },
-    
-    "sciserver-base": {
-        "version": "3.0"
+        "version": "0.2",
+        "default_python": "3.13",
+        "heasoft_version": "6.37.1",
+        "ciao_version": "4.18.0",
+        "fermitools_version": "2.5.2",
+        "fermi_pyversion": "3.12",
+        "spex_version": "3.08.03",
+        "sas_ubuntu_version": "24.04",
+        "sas_version": "22.1.0",
+
+        "novnc_version": "1.3.0",
+        "ds9_version": "8.5"
     }
 }

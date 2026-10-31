@@ -4,8 +4,8 @@
 
 home=/home/idies
 
-mkdir -p $home/.jupyter 
-mv jupyter_notebook_config.py $home/.jupyter/ 
+cat jupyter_server_config.py >> ${ENV_DIR}/heasoft/etc/jupyter/jupyter_server_config.py
+chown $USER:$USER -R ${ENV_DIR}/heasoft/etc/jupyter/
 
 mv xstartup /opt/xstartup
 chmod +x /opt/xstartup
@@ -25,4 +25,4 @@ rm vnc_lite.html.patch
 
 mv ds9.svg /opt/
 
-printf '\nalias ds9="/usr/local/bin/ds9 -mode region"\n' >> ~/.bashrc
+printf '\nalias ds9="/usr/local/bin/ds9 -mode region"\n' >> $home/.bashrc

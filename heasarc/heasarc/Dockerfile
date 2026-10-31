@@ -1,92 +1,105 @@
-FROM xmmsas:latest
+FROM ubuntu:24.04
 
-ARG headata=/home/idies/workspace/headata/FTP
-ARG user=idies
+ARG USER=idies \
+    DEBIAN_FRONTEND=noninteractive \
+    DEFAULT_PYTHON=3.13 \
+    HEASOFT_VERSION=6.37.1 \
+    CIAO_VERSION=4.18.0 \
+    FERMITOOLS_VERSION=2.5.2 \
+    FERMI_PYTHON_VERSION=3.12 \
+    SPEX_VERSION=3.08.* \
+    SAS_VERSION=22.1.0 \
+    SAS_UBUNTU_VERSION=24.04
 
+# env variables used by others
+ENV MAMBA_ROOT_PREFIX=/home/$USER/workspace/micromamba \
+    HEA_DATA="/home/$USER/workspace/headata/FTP"
 
-## ----------------------- ##
-## Install useful software ##
-USER root
-COPY extra_packages.txt .
-RUN apt-get update && apt-get -y install \
-        $(cat extra_packages.txt) \
- && rm extra_packages.txt \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-## ----------------------- ##
-
-
-## ----------- ##
-## preparation ##
-USER $user
-WORKDIR /home/$user
-## ----------- ##
-
-
-## ------------------------------ ##
-## A few additions to the kernels ##
-COPY --chown=1000:1000 kernel-additions.sh ./
-RUN bash kernel-additions.sh && \
-    rm kernel-additions.sh && \ 
-    mamba clean -y --all && rm -rf /home/$user/miniforge3/pkgs/*
-## ------------------------------ ##
-
-
-## ------------------------ ##
-## Install WWT labextension ##
-RUN pip install pywwt wwt_kernel_data_relay && \
-    jupyter labextension install @wwtelescope/jupyterlab && \
-    pip cache purge
-## ------------------------ ##
-
-# Custom condarc; install nb_conda_kernels to add conda env to jupyter
-# and also handle user environments
-COPY --chown=1000:1000 condarc /home/$user/miniforge3/.condarc
-COPY --chown=1000:1000 nb_conda_kernels.json /home/$user/miniforge3/etc/jupyter/jupyter_config.json
-RUN mamba install nb_conda_kernels jupytext=1.16.0 \
- && mamba clean -y --all && rm -rf /home/$user/miniforge3/pkgs/*
+# rest of env vairiables used by this image
+ENV HOME=/home/$USER \
+    PYTHON_VERSION=$DEFAULT_PYTHON \
+    SHELL=/bin/bash \
+    ENV_DIR=$MAMBA_ROOT_PREFIX/envs \
+    LOCK_DIR=$MAMBA_ROOT_PREFIX/locks \
+    CALDB_DATA=$HEA_DATA/caldb \
+    # build environment variables
+    HEASOFT_VERSION=$HEASOFT_VERSION \
+    CIAO_VERSION=$CIAO_VERSION \
+    FERMITOOLS_VERSION=$FERMITOOLS_VERSION \
+    FERMI_PYTHON_VERSION=$FERMI_PYTHON_VERSION \
+    SPEX_VERSION=$SPEX_VERSION \
+    SAS_VERSION=$SAS_VERSION \
+    SAS_UBUNTU_VERSION=$SAS_UBUNTU_VERSION
 
 
-
-## ------------------------------ ##
-## Install extra python libraries ##
-ADD requirements.txt requirements.txt
-RUN mamba install -n heasoft -y -c conda-forge --file requirements.txt \
- && mamba clean -y --all && rm requirements.txt \
- && rm -rf /home/$user/miniforge3/pkgs/* \
- && pip install jupyterlab-git jupyterlab-execute-time \
- && pip cache purge
-## ------------------------------ ##
+RUN usermod -l $USER -m -d /home/$USER ubuntu \
+ && groupmod -n $USER ubuntu \
+ && gpasswd -d $USER sudo \
+ && usermod -d /home/$USER $USER \
+ && mkdir -p /home/$USER/workspace \
+ && chown -R $USER:$USER /home/$USER
 
 
+# Copy our scripts
+COPY --chmod=0555 --chown=$USER:$USER scripts/* /usr/local/bin/
 
-## -------------------------- ##
-## other setup things as root ##
-## -------------------------- ##
+# Do any apt system packages
+COPY apt.txt* /tmp/
+RUN cd /tmp/ && \
+  if test -f apt.txt; then \
+    apt-get update --fix-missing > /dev/null; \
+    xargs -a apt.txt apt-get install -y; \
+    apt-get clean; \
+    apt-get -y autoremove; \
+    rm -rf apt.txt /var/lib/apt/lists/*; \
+  fi \
+  && ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime \
+  && locale-gen "en_US.UTF-8" \
+  && update-locale "LANG=en_US.UTF-8"
 
-USER root
-# fix yarn & clean cache
-RUN apt-get -y remove cmdtest yarn \
- && npm install -g yarn
-USER $user
-RUN yarn cache clean
-USER root
+# install micromamba
+RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba \
+ && mv bin/micromamba /usr/local/bin/ \
+ # add alias for conda and mamba to point the user to micromamba
+ && cd /usr/local/bin/\
+ && echo -e '#!/usr/bin/bash\necho "** Please use micromamba instead of conda/mamba **"' | tee conda mamba \
+ && chmod +x mamba conda \
+ # create symlink for Hesarc data volume
+ && ln -s $HEA_DATA /FTP
+
+USER $USER
+WORKDIR /home/$USER/workspace
 
 
-# create symlink for Hesarc data volume
-RUN ln -s $headata /FTP
+# Setup Heasoft environment: It is the main jupyter environment too.
+COPY --chown=$USER:$USER build/build-01-heasoft.sh /tmp/build/
+RUN micromamba shell init \
+ && bash /tmp/build/build-01-heasoft.sh \
+ && printf "\nmicromamba activate heasoft\n" >> ~/.bashrc
+
+# Setup CIAO environment
+COPY --chown=$USER:$USER build/build-02-ciao.sh /tmp/build/
+RUN bash /tmp/build/build-02-ciao.sh
 
 
-USER $user
-## -------------------------- ##
+# Setup Fermi environment
+COPY --chown=$USER:$USER build/build-03-fermi.sh /tmp/build/
+RUN bash /tmp/build/build-03-fermi.sh
+
+# Setup Spex
+COPY --chown=$USER:$USER build/build-04-spex.sh /tmp/build/
+RUN bash /tmp/build/build-04-spex.sh
+
+# Build and setup xmm sas
+COPY --chown=$USER:$USER build/build-05-xmmsas.sh /tmp/build/
+RUN bash /tmp/build/build-05-xmmsas.sh
 
 
-
-# Get tutorial notebooks #
-# the selection of langing page is done in startup.sh
-RUN cd /home/$user/workspace \
- && git clone https://github.com/HEASARC/sciserver_cookbooks.git \
- && cd sciserver_cookbooks 
+# Conda and jupyter configuration
+COPY --chown=$USER:$USER condarc ${MAMBA_ROOT_PREFIX}/.condarc
+COPY --chown=$USER:$USER jupyter_server_config.py ${ENV_DIR}/heasoft/etc/jupyter/jupyter_server_config.py
+COPY --chown=$USER:$USER overrides.json ${ENV_DIR}/heasoft/share/jupyter/lab/settings/
+COPY --chown=$USER:$USER page_config.json ${ENV_DIR}/heasoft/etc/jupyter/labconfig/
 
 
 ## ds9 and vnc ##
@@ -102,6 +115,7 @@ RUN curl -L -O https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION
     tar -zxf v${NOVNC_VERSION}.tar.gz && rm v${NOVNC_VERSION}.tar.gz && \
     mv noVNC-${NOVNC_VERSION} /opt/novnc
 
+
 # ds9; this needs libxss1 that should've been installed above
 ARG DS9_VERSION=8.4.1
 RUN wget -q https://ds9.si.edu/archive/ubuntu20/ds9.ubuntu20.${DS9_VERSION}.tar.gz && \
@@ -111,19 +125,13 @@ RUN wget -q https://ds9.si.edu/archive/ubuntu20/ds9.ubuntu20.${DS9_VERSION}.tar.
     rm ds9.ubuntu20.${DS9_VERSION}.tar.gz
 ADD --chown=1000:1000 ds9/config config
 RUN cd config && bash distribute.sh && cd .. && rm -rf config
-ENV DISPLAY=:1
+ENV DISPLAY=:1 \
+    PATH=$ENV_DIR/heasoft/bin:$PATH
 
-USER $user
-RUN mamba install -y -c conda-forge websockify supervisor -y && \
-    mamba clean -y --all && \
-    pip install jupyter-server-proxy && \
-    pip cache purge
+USER $USER
+RUN micromamba install -n heasoft -y -c conda-forge websockify supervisor -y && \
+    micromamba clean -y --all
 ## ----------- ##
-
-## install jdaviz ##
-RUN mamba run -n heasoft pip install jdaviz && mamba run -n heasoft pip cache purge \
- && pip install jdaviz && pip cache purge
-## -------------- ##
 
 ## JS9 from Duy ##
 USER root
@@ -132,7 +140,7 @@ RUN JS9_SHA=44ff078 \
   && unzip ${JS9_SHA}.zip \
   && rm ${JS9_SHA}.zip \
   && cd js9-${JS9_SHA}* \
-  && headir=/home/$user/miniforge3/envs/heasoft/heasoft \
+  && headir=$ENV_DIR/heasoft/heasoft \
   # temporary; add frame_id.js to the installed dir. Remove once added upstream
   && sed -i '/favicon.ico js9.html/s/$/ frame_id.js/' Makefile.in \
   && ./configure --with-webdir=/opt/js9/ --with-cfitsio=$headir --prefix=/home/$user/miniforge3 --with-helper=nodejs \
@@ -142,46 +150,16 @@ RUN JS9_SHA=44ff078 \
   && cd .. && rm -rf js9-${JS9_SHA}*
 
 
-USER $user
+USER $USER
 ENV INSTALL_JS9=false
 RUN JPYJS9_SHA=b469080 \
  && mkdir -p ~/.local/share/jupyterjs9 \
- && ln -s /opt/js9 /home/$user/.local/share/jupyterjs9/ \
+ && ln -s /opt/js9 ~/.local/share/jupyterjs9/ \
  && git clone https://github.com/zoghbi-a/jpyjs9 \
  && cd jpyjs9 && git checkout ${JPYJS9_SHA} && cd .. \
- && pip install ./jpyjs9 \
- && for cenv in heasoft ciao xmmsas fermi; do conda run -n $cenv pip install ./jpyjs9; done \
- && rm -rf jpyjs9 && pip cache purge
+ && for cenv in heasoft xmmsas; do micromamba run -n $cenv pip install --no-cache ./jpyjs9; done \
+ && rm -rf jpyjs9
 ## ------------ ##
 
-
-# create a script to print the version; the version arg comes from the variable
-# passed when building the image
-ARG version=0.1
-User root
-RUN printf "#!/usr/bin/bash\necho HEASARC Sciserver version: $version\necho Build date: `date`" \
-    > /usr/local/bin/heasarc-sciserver-version && \
-    chmod +x /usr/local/bin/heasarc-sciserver-version
-## Fix permissions ##
-RUN find /home/${user} -regex '.*/\..*' -not -path "/home/${user}/miniforge3" -exec chown $user:$user {} + \
- && chown -R $user:$user /opt/js9
-## --------------- ##
-USER $user
-
-# Disable the announcements extension
-RUN jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
-
-# Copy our startup script to set landing page and default kernel
 COPY startup.sh /opt/startup.sh
-## copy some setting files
-COPY --chown=1000:1000 overrides.json /home/$user/miniforge3/share/jupyter/lab/settings/overrides.json
-## ----------------------- ##
-
-## make sure the image has the build-in conda environment setup. Needed for batch jobs
-RUN python -m nb_conda_kernels list
-
-# add .bashrc from the user's persistent space
-RUN printf "\n\
-if [ -f /home/${user}/workspace/Storage/*/persistent/.bashrc ]; then\n\
-    . /home/${user}/workspace/Storage/*/persistent/.bashrc\n\
-fi\n" >> /home/${user}/.bashrc
+CMD ["bash", "/opt/startup.sh"]

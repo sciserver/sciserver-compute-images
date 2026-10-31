@@ -1,6 +1,12 @@
 #!/usr/bin/bash
 
 
-if [ ! `pgrep supervisord` ]; then 
-    supervisord -c /etc/supervisor/conf.d/supervisord.conf
-fi
+# if [ ! `pgrep supervisord` ]; then 
+#     supervisord -c /etc/supervisor/conf.d/supervisord.conf
+# fi
+
+# Clean up any stale locks if the container restarted abruptly
+rm -f /tmp/.X1-lock /tmp/.X11-unix/X1 /tmp/supervisord.pid
+
+# Run supervisor in the foreground so jupyter-server-proxy can track it
+exec supervisord -n -c /etc/supervisor/conf.d/supervisord.conf

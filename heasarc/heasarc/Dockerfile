@@ -162,4 +162,7 @@ RUN JPYJS9_SHA=b469080 \
 ## ------------ ##
 
 COPY startup.sh /opt/startup.sh
+USER root
+RUN chmod +x /opt/startup.sh
+USER $USER
 CMD ["bash", "/opt/startup.sh"]

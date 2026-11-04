@@ -83,3 +83,8 @@
 
 # Version 0.10.1
 - Fix PATH variable for ciao and fermi environments
+
+# Version 0.11
+- Update heasoft to 6.37.1
+- Refactor the build to use one image instead of multiple one.
+- Use micromamba instead of mamba/conda.

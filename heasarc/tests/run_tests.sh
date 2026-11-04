@@ -64,7 +64,7 @@ for image in heasoft ciao fermi spex xmmsas; do
         echo "Testing the ($image) environment"
         echo "----------------------------------"
         echo
-        if conda activate $image; then
+        if micromamba activate $image; then
             echo "Activated $image"
         else
             printf "** ERROR: No ($image) conda environment.\n"

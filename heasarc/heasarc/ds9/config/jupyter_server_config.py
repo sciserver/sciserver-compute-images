@@ -1,9 +1,8 @@
-
 def setup_ds9():
-
     out = {
         'command': ['start_supervisor'],
-        'port': 5901,
+        # IMPORTANT: Point the proxy to the websockify port
+        'port': 6080,
         'timeout': 30,
         'mappath': {'/': '/vnc_lite.html'},
         'new_browser_tab': False,
@@ -15,11 +14,6 @@ def setup_ds9():
     }
     return out
 
-
-c.ServerProxy.servers = {
+c.ServerProxy.servers = {  # noqa
     'ds9': setup_ds9()
 }
-
-
-
-

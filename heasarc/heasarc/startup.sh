@@ -1,19 +1,31 @@
 #!/bin/bash
-user=idies
-# update the notebooks
-cd /home/$user/workspace/sciserver_cookbooks
-git pull origin main || echo "Notebook updated failed!"
-cd /home/$user
+
+## ------------------------- ##
+## --- Set env variables --- ##
+# pip default install dir when --user is used.
+USER=idies
+SCISERVER_USER_NAME=${SCISERVER_USER_NAME:-$USER}
+export PYTHONUSERBASE="/home/$USER/workspace/Storage/$SCISERVER_USER_NAME/persistent/pip"
+mkdir -p $PYTHONUSERBASE
+
+# User-specific conda environment directory.
+export USER_ENV_DIR="/home/$USER/workspace/Storage/$SCISERVER_USER_NAME/persistent/user-envs"
+
+## ------------------------- ##
 
 
-/home/$user/miniforge3/bin/jupyter lab \
+## ------------------------ ##
+## --- Start jupyterlab --- ##
+
+$ENV_DIR/heasoft/bin/jupyter lab \
     --no-browser \
     --ip=* \
-    --notebook-dir=/home/idies/workspace \
-    --NotebookApp.token= \
+    --notebook-dir=/home/$USER/workspace \
+    --ServerApp.token= \
     --KernelSpecManager.ensure_native_kernel=False \
-    --NotebookApp.allow_remote_access=True \
-    --NotebookApp.quit_button=False \
-    --NotebookApp.base_url=$1 \
+    --ServerApp.allow_remote_access=True \
+    --ServerApp.quit_button=False \
+    --ServerApp.base_url=$1 \
     \
     --ServerApp.MultiKernelManager.default_kernel_name='conda-env-heasoft-py'
+
